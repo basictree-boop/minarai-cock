@@ -1,0 +1,1208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🐰 みならいコックさんのレシピノート</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=M+PLUS+Rounded+1c:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FFF8F0;
+    --peach: #FFD5B8;
+    --orange: #FF8C42;
+    --pink: #FFB3C6;
+    --red: #FF5C8A;
+    --mint: #B8F0D5;
+    --green: #42C878;
+    --yellow: #FFE566;
+    --purple: #C8B3FF;
+    --bunny: #F5E6FF;
+    --text: #4A3728;
+    --shadow: rgba(74,55,40,0.15);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'M PLUS Rounded 1c', 'Nunito', sans-serif;
+    background: var(--cream);
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(circle at 10% 20%, rgba(255,179,198,0.3) 0%, transparent 40%),
+      radial-gradient(circle at 90% 80%, rgba(200,179,255,0.3) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(255,229,102,0.2) 0%, transparent 60%);
+    color: var(--text);
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #FF8C42, #FF5C8A);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 4px 20px rgba(255,92,138,0.4);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .bunny-logo {
+    font-size: 48px;
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.2));
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
+
+  .header-title {
+    color: white;
+    font-size: 22px;
+    font-weight: 900;
+    text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+    line-height: 1.2;
+  }
+
+  .header-sub {
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(255,255,255,0.85);
+  }
+
+  /* NAVIGATION */
+  .nav {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    padding: 16px;
+    background: white;
+    box-shadow: 0 2px 12px var(--shadow);
+  }
+
+  .nav-btn {
+    flex: 1;
+    max-width: 200px;
+    padding: 12px 8px;
+    border: 3px solid transparent;
+    border-radius: 20px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .nav-btn .nav-icon { font-size: 24px; }
+
+  .nav-btn.recipe { background: var(--mint); border-color: var(--green); color: #2a7a4a; }
+  .nav-btn.food   { background: var(--peach); border-color: var(--orange); color: #8a4a10; }
+  .nav-btn.view   { background: var(--purple); border-color: #7a5abf; color: #4a2a8a; }
+
+  .nav-btn.active,
+  .nav-btn:hover {
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px var(--shadow);
+  }
+
+  /* PAGES */
+  .page { display: none; padding: 20px 16px; max-width: 700px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CARDS */
+  .card {
+    background: white;
+    border-radius: 24px;
+    padding: 20px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 16px var(--shadow);
+    border: 2px solid transparent;
+  }
+
+  .card-recipe { border-color: var(--mint); }
+  .card-food   { border-color: var(--peach); }
+  .card-view   { border-color: var(--purple); }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* FORM ELEMENTS */
+  label {
+    display: block;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 6px;
+    margin-top: 14px;
+    color: var(--text);
+  }
+
+  label:first-of-type { margin-top: 0; }
+
+  input[type="text"], input[type="date"], textarea, select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 3px solid #e8d5c4;
+    border-radius: 16px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 15px;
+    background: var(--cream);
+    color: var(--text);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  input[type="text"]:focus, textarea:focus, select:focus, input[type="date"]:focus {
+    border-color: var(--orange);
+    background: white;
+  }
+
+  textarea { resize: vertical; min-height: 80px; }
+
+  /* INGREDIENT SECTION */
+  .ingredients-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+  .ingredient-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ingredient-row input[type="text"] {
+    flex: 2;
+    margin: 0;
+  }
+  .ingredient-amount {
+    flex: 1;
+  }
+
+  .btn-add-ingredient {
+    width: 100%;
+    padding: 10px;
+    background: var(--mint);
+    border: 2px dashed var(--green);
+    border-radius: 12px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: #2a7a4a;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-add-ingredient:hover { background: #9de5c0; }
+
+  .btn-remove {
+    background: var(--pink);
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+
+  .btn-remove:hover { background: var(--red); color: white; }
+
+  /* STEPS */
+  .steps-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+  .step-row {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    background: var(--orange);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 900;
+    font-size: 16px;
+    flex-shrink: 0;
+    margin-top: 8px;
+  }
+
+  .step-row textarea { flex: 1; min-height: 60px; margin: 0; }
+
+  /* RATING STARS */
+  .stars {
+    display: flex;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  .star-btn {
+    font-size: 32px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.1s;
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  .star-btn.active { filter: none; opacity: 1; }
+  .star-btn:hover { transform: scale(1.3); }
+
+  /* PHOTO UPLOAD */
+  .photo-upload {
+    border: 3px dashed #e8d5c4;
+    border-radius: 20px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: var(--cream);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .photo-upload:hover { border-color: var(--orange); background: #fff5ee; }
+
+  .photo-upload input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .photo-preview {
+    width: 100%;
+    max-height: 200px;
+    object-fit: cover;
+    border-radius: 16px;
+    margin-top: 10px;
+    display: none;
+  }
+
+  /* LOCATION BUTTONS */
+  .location-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  .loc-btn {
+    padding: 8px 16px;
+    border: 2px solid #e8d5c4;
+    border-radius: 20px;
+    background: var(--cream);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+
+  .loc-btn.selected {
+    background: var(--peach);
+    border-color: var(--orange);
+    color: #8a4a10;
+  }
+
+  .loc-btn:hover { transform: scale(1.05); }
+
+  /* SUBMIT BUTTON */
+  .btn-save {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 20px;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 18px;
+    font-weight: 900;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  .btn-save.recipe { background: linear-gradient(135deg, var(--green), #25a85a); color: white; }
+  .btn-save.food   { background: linear-gradient(135deg, var(--orange), #e06020); color: white; }
+  .btn-save:hover  { transform: translateY(-3px); box-shadow: 0 8px 24px var(--shadow); }
+  .btn-save:active { transform: translateY(0); }
+
+  /* VIEW PAGE */
+  .view-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-btn {
+    padding: 8px 18px;
+    border: 2px solid #e8d5c4;
+    border-radius: 20px;
+    background: white;
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+
+  .filter-btn.active {
+    background: var(--purple);
+    border-color: #7a5abf;
+    color: #4a2a8a;
+  }
+
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .search-bar input {
+    flex: 1;
+  }
+
+  .date-filter {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .date-filter label { margin: 0; font-size: 13px; }
+  .date-filter input { width: auto; flex: 1; min-width: 130px; }
+
+  /* RECORD CARDS */
+  .records-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+
+  .record-card {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px var(--shadow);
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+
+  .record-card:hover { transform: translateY(-4px); }
+
+  .record-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+  }
+
+  .record-img-placeholder {
+    width: 100%;
+    height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 64px;
+    background: linear-gradient(135deg, var(--cream), var(--peach));
+  }
+
+  .record-body { padding: 14px; }
+
+  .record-type-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .badge-recipe { background: var(--mint); color: #2a7a4a; }
+  .badge-food   { background: var(--peach); color: #8a4a10; }
+
+  .record-title { font-size: 16px; font-weight: 900; margin-bottom: 4px; }
+  .record-date  { font-size: 12px; color: #999; margin-bottom: 6px; }
+  .record-stars { font-size: 16px; }
+  .record-note  { font-size: 13px; color: #666; margin-top: 6px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #bbb;
+  }
+
+  .empty-state .empty-icon { font-size: 80px; display: block; margin-bottom: 16px; }
+  .empty-state p { font-size: 16px; font-weight: 700; }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: white;
+    border-radius: 24px;
+    padding: 24px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    position: relative;
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--pink);
+    border: none;
+    border-radius: 50%;
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .modal-close:hover { background: var(--red); color: white; }
+
+  .modal-img {
+    width: 100%;
+    border-radius: 16px;
+    max-height: 220px;
+    object-fit: cover;
+    margin-bottom: 16px;
+  }
+
+  .modal-title { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
+  .modal-section { margin-top: 14px; }
+  .modal-section-title { font-size: 14px; font-weight: 900; color: var(--orange); margin-bottom: 6px; }
+  .modal-tag {
+    display: inline-block;
+    background: var(--cream);
+    border-radius: 8px;
+    padding: 4px 10px;
+    font-size: 13px;
+    margin: 3px;
+  }
+
+  /* SUCCESS TOAST */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    background: var(--green);
+    color: white;
+    padding: 14px 28px;
+    border-radius: 20px;
+    font-weight: 900;
+    font-size: 16px;
+    box-shadow: 0 8px 24px rgba(66,200,120,0.5);
+    transition: transform 0.3s ease;
+    z-index: 300;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* DIFFICULTY */
+  .difficulty-btns { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+  .diff-btn {
+    padding: 8px 16px;
+    border: 2px solid #e8d5c4;
+    border-radius: 12px;
+    background: var(--cream);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  .diff-btn.selected { background: var(--yellow); border-color: #c8a800; }
+
+  /* TAGS */
+  .category-btns { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0; }
+  .cat-btn {
+    padding: 6px 14px;
+    border: 2px solid #e8d5c4;
+    border-radius: 20px;
+    background: var(--cream);
+    font-family: 'M PLUS Rounded 1c', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text);
+  }
+  .cat-btn.selected { background: var(--mint); border-color: var(--green); color: #2a7a4a; }
+
+  /* HELP TIPS */
+  .hint-box {
+    background: var(--yellow);
+    border-radius: 14px;
+    padding: 12px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 16px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="bunny-logo">🐰</div>
+  <div>
+    <div class="header-title">みならいコックさんのレシピノート</div>
+    <div class="header-sub">おいしいをたくさんメモしよう！</div>
+  </div>
+</header>
+
+<!-- NAVIGATION -->
+<nav class="nav">
+  <button class="nav-btn recipe active" onclick="showPage('recipe')">
+    <span class="nav-icon">📖</span>
+    <span>①レシピをかく</span>
+  </button>
+  <button class="nav-btn food" onclick="showPage('food')">
+    <span class="nav-icon">🍽️</span>
+    <span>②たべたものをかく</span>
+  </button>
+  <button class="nav-btn view" onclick="showPage('view')">
+    <span class="nav-icon">🔍</span>
+    <span>③みてみよう</span>
+  </button>
+</nav>
+
+<!-- PAGE ①: RECIPE -->
+<div class="page active" id="page-recipe">
+  <div class="card card-recipe">
+    <div class="section-title">📖 おいしかったレシピをかこう！</div>
+    <div class="hint-box">🐰 つくりかたをくわしくかくと、またつくれるよ！</div>
+
+    <label>🍳 りょうりのなまえ *</label>
+    <input type="text" id="r-name" placeholder="例：カレーライス、たまごやき...">
+
+    <label>📅 つくった日</label>
+    <input type="date" id="r-date">
+
+    <label>👨‍🍳 ジャンル（えらんでね）</label>
+    <div class="category-btns" id="r-category">
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍚 ごはん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍜 めん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍞 パン</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🥗 サラダ</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍰 おかし</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍲 にもの</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🍳 いためもの</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'r-category')">🥘 その他</button>
+    </div>
+
+    <label>🕐 かかるじかん</label>
+    <div style="display:flex; gap:8px; align-items:center;">
+      <input type="text" id="r-time" placeholder="例：30" style="max-width:100px;">
+      <span style="font-weight:700;">ふん</span>
+    </div>
+
+    <label>😤 むずかしさ</label>
+    <div class="difficulty-btns" id="r-difficulty">
+      <button class="diff-btn" onclick="toggleDiff(this)">⭐ かんたん</button>
+      <button class="diff-btn" onclick="toggleDiff(this)">⭐⭐ ふつう</button>
+      <button class="diff-btn" onclick="toggleDiff(this)">⭐⭐⭐ むずかしい</button>
+    </div>
+
+    <label>🛒 ざいりょう（何人分？）</label>
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <input type="text" id="r-servings" placeholder="2" style="max-width:80px;">
+      <span style="font-weight:700;">にんぶん</span>
+    </div>
+    <div class="ingredients-list" id="ingredients-list">
+      <div class="ingredient-row">
+        <input type="text" placeholder="ざいりょうのなまえ（例：たまご）">
+        <input type="text" class="ingredient-amount" placeholder="りょう（例：2こ）">
+        <button class="btn-remove" onclick="removeRow(this)">✕</button>
+      </div>
+    </div>
+    <button class="btn-add-ingredient" onclick="addIngredient()">＋ ざいりょうをついかする</button>
+
+    <label>📝 つくりかた</label>
+    <div class="steps-list" id="steps-list">
+      <div class="step-row">
+        <div class="step-number">1</div>
+        <textarea placeholder="さいしょにすること...（例：たまごをわる）"></textarea>
+        <button class="btn-remove" onclick="removeStep(this)">✕</button>
+      </div>
+    </div>
+    <button class="btn-add-ingredient" onclick="addStep()">＋ てじゅんをついかする</button>
+
+    <label>💡 りょうりのコツ・ポイント</label>
+    <textarea id="r-tips" placeholder="おいしくつくるひみつをかこう！"></textarea>
+
+    <label>💬 かんそう・おきもち</label>
+    <textarea id="r-review" placeholder="たべてみてどうだった？だれかにつくってあげた？"></textarea>
+
+    <label>⭐ おいしさレベル</label>
+    <div class="stars" id="r-stars">
+      <button class="star-btn" onclick="setStars('r-stars',1)">⭐</button>
+      <button class="star-btn" onclick="setStars('r-stars',2)">⭐</button>
+      <button class="star-btn" onclick="setStars('r-stars',3)">⭐</button>
+      <button class="star-btn" onclick="setStars('r-stars',4)">⭐</button>
+      <button class="star-btn" onclick="setStars('r-stars',5)">⭐</button>
+    </div>
+
+    <label>📷 しゃしん</label>
+    <div class="photo-upload" id="r-photo-area">
+      <input type="file" accept="image/*" onchange="previewPhoto(this, 'r-preview', 'r-photo-data')">
+      <div id="r-upload-hint">
+        <div style="font-size:48px;">📸</div>
+        <div style="font-weight:700; margin-top:8px;">タップしてしゃしんをえらぶ</div>
+        <div style="font-size:12px; color:#999; margin-top:4px;">かんせいしたりょうりのしゃしんをとろう！</div>
+      </div>
+      <img class="photo-preview" id="r-preview">
+    </div>
+    <input type="hidden" id="r-photo-data">
+
+    <button class="btn-save recipe" onclick="saveRecipe()">🐰 レシピをほぞんする！</button>
+  </div>
+</div>
+
+<!-- PAGE ②: FOOD -->
+<div class="page" id="page-food">
+  <div class="card card-food">
+    <div class="section-title">🍽️ たべたものをきろくしよう！</div>
+    <div class="hint-box">🐰 おうちのごはん、レストラン、りょこうでたべたものなんでもOK！</div>
+
+    <label>🍴 たべたりょうりのなまえ *</label>
+    <input type="text" id="f-name" placeholder="例：おかあさんのから揚げ、ラーメン...">
+
+    <label>📅 たべた日</label>
+    <input type="date" id="f-date">
+
+    <label>📍 どこでたべた？（えらんでね）</label>
+    <div class="location-btns" id="f-location-btns">
+      <button class="loc-btn" onclick="selectLoc(this)">🏠 おうち</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🍽️ レストラン</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🍣 おすしやさん</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🍔 ファストフード</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🏫 がっこう</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🚂 りょこう</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🎪 おまつり・イベント</button>
+      <button class="loc-btn" onclick="selectLoc(this)">✈️ がいこく</button>
+      <button class="loc-btn" onclick="selectLoc(this)">🥡 テイクアウト</button>
+      <button class="loc-btn" onclick="selectLoc(this)">💡 その他</button>
+    </div>
+
+    <label>📍 くわしいばしょ（みせのなまえや、りょこうのばしょなど）</label>
+    <input type="text" id="f-location-detail" placeholder="例：東京タワーのそば、グランドハイアット東京...">
+
+    <label>👨‍🍳 だれがつくった？</label>
+    <div class="category-btns" id="f-maker">
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">👨 おとうさん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">👩 おかあさん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">👴 おじいちゃん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">👵 おばあちゃん</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">👨‍🍳 シェフ・コック</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">🏫 きゅうしょくのひと</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-maker')">😊 じぶん</button>
+    </div>
+
+    <label>🍳 りょうりのしゅるい</label>
+    <div class="category-btns" id="f-cuisine">
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🇯🇵 わしょく</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🍝 イタリアン</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🍜 中華</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🍔 アメリカン</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🥘 フレンチ</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🌮 メキシカン</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🍛 インド・カレー</button>
+      <button class="cat-btn" onclick="toggleCat(this, 'f-cuisine')">🌏 その他</button>
+    </div>
+
+    <label>💬 かんそう・おきもち *</label>
+    <textarea id="f-review" placeholder="たべてどうだった？どんなあじだった？また食べたい？すきなところを教えて！"></textarea>
+
+    <label>⭐ おいしさレベル</label>
+    <div class="stars" id="f-stars">
+      <button class="star-btn" onclick="setStars('f-stars',1)">⭐</button>
+      <button class="star-btn" onclick="setStars('f-stars',2)">⭐</button>
+      <button class="star-btn" onclick="setStars('f-stars',3)">⭐</button>
+      <button class="star-btn" onclick="setStars('f-stars',4)">⭐</button>
+      <button class="star-btn" onclick="setStars('f-stars',5)">⭐</button>
+    </div>
+
+    <label>🔄 またたべたい？</label>
+    <div class="category-btns" id="f-again">
+      <button class="cat-btn" onclick="toggleCat(this,'f-again')">💖 ぜったいまたたべたい！</button>
+      <button class="cat-btn" onclick="toggleCat(this,'f-again')">😊 またたべてもいい</button>
+      <button class="cat-btn" onclick="toggleCat(this,'f-again')">😐 ふつう</button>
+      <button class="cat-btn" onclick="toggleCat(this,'f-again')">😅 もうたべなくていいかな</button>
+    </div>
+
+    <label>📷 しゃしん</label>
+    <div class="photo-upload" id="f-photo-area">
+      <input type="file" accept="image/*" onchange="previewPhoto(this, 'f-preview', 'f-photo-data')">
+      <div id="f-upload-hint">
+        <div style="font-size:48px;">📸</div>
+        <div style="font-weight:700; margin-top:8px;">タップしてしゃしんをえらぶ</div>
+        <div style="font-size:12px; color:#999; margin-top:4px;">たべたりょうりのしゃしんをとろう！</div>
+      </div>
+      <img class="photo-preview" id="f-preview">
+    </div>
+    <input type="hidden" id="f-photo-data">
+
+    <button class="btn-save food" onclick="saveFood()">🐰 きろくをほぞんする！</button>
+  </div>
+</div>
+
+<!-- PAGE ③: VIEW -->
+<div class="page" id="page-view">
+  <div class="card card-view" style="padding:16px;">
+    <div class="section-title">🔍 きろくをみてみよう！</div>
+
+    <!-- Filter buttons -->
+    <div class="view-filters">
+      <button class="filter-btn active" onclick="setFilter('all', this)">🐰 ぜんぶ</button>
+      <button class="filter-btn" onclick="setFilter('recipe', this)">📖 レシピ</button>
+      <button class="filter-btn" onclick="setFilter('food', this)">🍽️ たべたもの</button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="🔍 なまえでさがす..." oninput="renderRecords()">
+    </div>
+
+    <!-- Date filter -->
+    <div class="date-filter">
+      <label>📅 きかん：</label>
+      <input type="date" id="date-from" onchange="renderRecords()">
+      <span style="font-weight:700;">〜</span>
+      <input type="date" id="date-to" onchange="renderRecords()">
+    </div>
+
+    <!-- Records grid -->
+    <div class="records-grid" id="records-grid">
+      <div class="empty-state" style="grid-column:1/-1;">
+        <span class="empty-icon">🐰</span>
+        <p>まだきろくがないよ！<br>①か②でさいしょのきろくをしよう！</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal-content">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">🐰 ほぞんしたよ！</div>
+
+<script>
+// ========== STATE ==========
+let records = JSON.parse(localStorage.getItem('bunny-records') || '[]');
+let currentFilter = 'all';
+let currentStars = { 'r-stars': 0, 'f-stars': 0 };
+
+// ========== NAVIGATION ==========
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  document.querySelector('.nav-btn.' + page).classList.add('active');
+  if (page === 'view') renderRecords();
+}
+
+// ========== INGREDIENTS & STEPS ==========
+function addIngredient() {
+  const list = document.getElementById('ingredients-list');
+  const row = document.createElement('div');
+  row.className = 'ingredient-row';
+  row.innerHTML = `
+    <input type="text" placeholder="ざいりょうのなまえ">
+    <input type="text" class="ingredient-amount" placeholder="りょう">
+    <button class="btn-remove" onclick="removeRow(this)">✕</button>`;
+  list.appendChild(row);
+}
+
+function removeRow(btn) {
+  const list = document.getElementById('ingredients-list');
+  if (list.children.length > 1) btn.parentElement.remove();
+}
+
+function addStep() {
+  const list = document.getElementById('steps-list');
+  const num = list.children.length + 1;
+  const row = document.createElement('div');
+  row.className = 'step-row';
+  row.innerHTML = `
+    <div class="step-number">${num}</div>
+    <textarea placeholder="つぎにすること..."></textarea>
+    <button class="btn-remove" onclick="removeStep(this)">✕</button>`;
+  list.appendChild(row);
+}
+
+function removeStep(btn) {
+  const list = document.getElementById('steps-list');
+  if (list.children.length > 1) {
+    btn.parentElement.remove();
+    // renumber
+    list.querySelectorAll('.step-number').forEach((n, i) => n.textContent = i + 1);
+  }
+}
+
+// ========== STARS ==========
+function setStars(id, val) {
+  currentStars[id] = val;
+  const btns = document.querySelectorAll(`#${id} .star-btn`);
+  btns.forEach((b, i) => {
+    b.classList.toggle('active', i < val);
+  });
+}
+
+// ========== CATEGORY/LOCATION TOGGLES ==========
+function toggleCat(btn, groupId) {
+  btn.classList.toggle('selected');
+}
+
+function selectLoc(btn) {
+  document.querySelectorAll('#f-location-btns .loc-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function toggleDiff(btn) {
+  document.querySelectorAll('#r-difficulty .diff-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+// ========== PHOTO PREVIEW ==========
+function previewPhoto(input, previewId, dataId) {
+  if (!input.files[0]) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById(dataId).value = e.target.result;
+    document.getElementById(input.id ? input.id + '-hint' : previewId.replace('preview','upload-hint')) && 
+      (document.querySelector(`#${previewId}`).previousElementSibling.style.display = 'none');
+    // hide hint
+    const area = img.closest('.photo-upload');
+    area.querySelector('div').style.display = 'none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+
+// ========== GET SELECTED ==========
+function getSelected(groupId) {
+  return Array.from(document.querySelectorAll(`#${groupId} .selected, #${groupId} .cat-btn.selected, #${groupId} .loc-btn.selected`))
+    .map(b => b.textContent.trim()).join(', ');
+}
+
+// ========== SAVE RECIPE ==========
+function saveRecipe() {
+  const name = document.getElementById('r-name').value.trim();
+  if (!name) { alert('🐰 りょうりのなまえをかいてね！'); return; }
+
+  // collect ingredients
+  const ingredients = [];
+  document.querySelectorAll('#ingredients-list .ingredient-row').forEach(row => {
+    const inputs = row.querySelectorAll('input');
+    if (inputs[0].value.trim()) {
+      ingredients.push({ name: inputs[0].value.trim(), amount: inputs[1].value.trim() });
+    }
+  });
+
+  // collect steps
+  const steps = [];
+  document.querySelectorAll('#steps-list .step-row textarea').forEach(ta => {
+    if (ta.value.trim()) steps.push(ta.value.trim());
+  });
+
+  const record = {
+    id: Date.now(),
+    type: 'recipe',
+    name,
+    date: document.getElementById('r-date').value || new Date().toISOString().split('T')[0],
+    category: getSelected('r-category'),
+    time: document.getElementById('r-time').value,
+    difficulty: document.querySelector('#r-difficulty .selected')?.textContent.trim() || '',
+    servings: document.getElementById('r-servings').value,
+    ingredients,
+    steps,
+    tips: document.getElementById('r-tips').value.trim(),
+    review: document.getElementById('r-review').value.trim(),
+    stars: currentStars['r-stars'],
+    photo: document.getElementById('r-photo-data').value,
+  };
+
+  records.unshift(record);
+  saveToStorage();
+  showToast('🐰 レシピをほぞんしたよ！');
+  resetRecipeForm();
+}
+
+// ========== SAVE FOOD ==========
+function saveFood() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('🐰 たべたりょうりのなまえをかいてね！'); return; }
+
+  const locBtn = document.querySelector('#f-location-btns .loc-btn.selected');
+  const record = {
+    id: Date.now(),
+    type: 'food',
+    name,
+    date: document.getElementById('f-date').value || new Date().toISOString().split('T')[0],
+    location: locBtn?.textContent.trim() || '',
+    locationDetail: document.getElementById('f-location-detail').value.trim(),
+    maker: getSelected('f-maker'),
+    cuisine: getSelected('f-cuisine'),
+    review: document.getElementById('f-review').value.trim(),
+    stars: currentStars['f-stars'],
+    again: getSelected('f-again'),
+    photo: document.getElementById('f-photo-data').value,
+  };
+
+  records.unshift(record);
+  saveToStorage();
+  showToast('🐰 たべたものをほぞんしたよ！');
+  resetFoodForm();
+}
+
+function saveToStorage() {
+  try {
+    localStorage.setItem('bunny-records', JSON.stringify(records));
+  } catch(e) {
+    // Storage might be full due to images; keep in memory
+  }
+}
+
+// ========== RESET FORMS ==========
+function resetRecipeForm() {
+  document.getElementById('r-name').value = '';
+  document.getElementById('r-date').value = '';
+  document.getElementById('r-time').value = '';
+  document.getElementById('r-servings').value = '';
+  document.getElementById('r-tips').value = '';
+  document.getElementById('r-review').value = '';
+  document.getElementById('r-photo-data').value = '';
+  document.getElementById('r-preview').style.display = 'none';
+  document.querySelector('#r-photo-area div').style.display = '';
+  document.querySelectorAll('#r-category .cat-btn, #r-difficulty .diff-btn').forEach(b => b.classList.remove('selected','active'));
+  document.querySelectorAll('#r-stars .star-btn').forEach(b => b.classList.remove('active'));
+  currentStars['r-stars'] = 0;
+  document.getElementById('ingredients-list').innerHTML = `
+    <div class="ingredient-row">
+      <input type="text" placeholder="ざいりょうのなまえ（例：たまご）">
+      <input type="text" class="ingredient-amount" placeholder="りょう（例：2こ）">
+      <button class="btn-remove" onclick="removeRow(this)">✕</button>
+    </div>`;
+  document.getElementById('steps-list').innerHTML = `
+    <div class="step-row">
+      <div class="step-number">1</div>
+      <textarea placeholder="さいしょにすること...（例：たまごをわる）"></textarea>
+      <button class="btn-remove" onclick="removeStep(this)">✕</button>
+    </div>`;
+}
+
+function resetFoodForm() {
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-date').value = '';
+  document.getElementById('f-location-detail').value = '';
+  document.getElementById('f-review').value = '';
+  document.getElementById('f-photo-data').value = '';
+  document.getElementById('f-preview').style.display = 'none';
+  document.querySelector('#f-photo-area div').style.display = '';
+  document.querySelectorAll('#f-location-btns .loc-btn, #f-maker .cat-btn, #f-cuisine .cat-btn, #f-again .cat-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelectorAll('#f-stars .star-btn').forEach(b => b.classList.remove('active'));
+  currentStars['f-stars'] = 0;
+}
+
+// ========== VIEW ==========
+function setFilter(filter, btn) {
+  currentFilter = filter;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRecords();
+}
+
+function renderRecords() {
+  const grid = document.getElementById('records-grid');
+  const search = document.getElementById('search-input').value.toLowerCase();
+  const dateFrom = document.getElementById('date-from').value;
+  const dateTo = document.getElementById('date-to').value;
+
+  let filtered = records.filter(r => {
+    if (currentFilter !== 'all' && r.type !== currentFilter) return false;
+    if (search && !r.name.toLowerCase().includes(search)) return false;
+    if (dateFrom && r.date < dateFrom) return false;
+    if (dateTo && r.date > dateTo) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;">
+      <span class="empty-icon">🐰</span>
+      <p>きろくがみつからないよ！<br>さがしかたをかえてみてね</p>
+    </div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(r => {
+    const stars = '⭐'.repeat(r.stars || 0);
+    const imgHtml = r.photo
+      ? `<img class="record-img" src="${r.photo}" alt="${r.name}">`
+      : `<div class="record-img-placeholder">${r.type === 'recipe' ? '📖' : '🍽️'}</div>`;
+    const badge = r.type === 'recipe'
+      ? `<span class="record-type-badge badge-recipe">📖 レシピ</span>`
+      : `<span class="record-type-badge badge-food">🍽️ たべたもの</span>`;
+    const sub = r.type === 'food' && r.location ? `<div style="font-size:12px;color:#888;margin-bottom:4px;">${r.location} ${r.locationDetail ? '・' + r.locationDetail : ''}</div>` : '';
+    return `<div class="record-card" onclick="openModal(${r.id})">
+      ${imgHtml}
+      <div class="record-body">
+        ${badge}
+        <div class="record-title">${r.name}</div>
+        ${sub}
+        <div class="record-date">📅 ${formatDate(r.date)}</div>
+        <div class="record-stars">${stars}</div>
+        ${r.review ? `<div class="record-note">${r.review}</div>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function formatDate(d) {
+  if (!d) return '';
+  const [y,m,day] = d.split('-');
+  return `${y}年${m}月${day}日`;
+}
+
+// ========== MODAL ==========
+function openModal(id) {
+  const r = records.find(r => r.id === id);
+  if (!r) return;
+  const stars = '⭐'.repeat(r.stars || 0);
+  let html = '';
+
+  if (r.photo) html += `<img class="modal-img" src="${r.photo}" alt="${r.name}">`;
+
+  const badge = r.type === 'recipe'
+    ? `<span class="record-type-badge badge-recipe">📖 レシピ</span>`
+    : `<span class="record-type-badge badge-food">🍽️ たべたもの</span>`;
+
+  html += `${badge}<div class="modal-title">${r.name}</div>`;
+  html += `<div style="color:#999;font-size:13px;margin-bottom:8px;">📅 ${formatDate(r.date)}</div>`;
+  if (stars) html += `<div style="font-size:20px;margin-bottom:12px;">${stars}</div>`;
+
+  if (r.type === 'recipe') {
+    if (r.category) html += `<div class="modal-section"><div class="modal-section-title">🍳 ジャンル</div><span class="modal-tag">${r.category}</span></div>`;
+    if (r.difficulty) html += `<div class="modal-section"><div class="modal-section-title">😤 むずかしさ</div><span class="modal-tag">${r.difficulty}</span></div>`;
+    const timing = [r.time && `⏱ ${r.time}ふん`, r.servings && `👥 ${r.servings}にんぶん`].filter(Boolean).join(' ');
+    if (timing) html += `<div class="modal-section"><div class="modal-section-title">📏 じょうほう</div><span class="modal-tag">${timing}</span></div>`;
+
+    if (r.ingredients?.length) {
+      html += `<div class="modal-section"><div class="modal-section-title">🛒 ざいりょう</div>`;
+      r.ingredients.forEach(i => html += `<span class="modal-tag">${i.name} ${i.amount}</span>`);
+      html += '</div>';
+    }
+
+    if (r.steps?.length) {
+      html += `<div class="modal-section"><div class="modal-section-title">📝 つくりかた</div>`;
+      r.steps.forEach((s, i) => html += `<div style="display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;"><span style="background:var(--orange);color:white;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:12px;flex-shrink:0;">${i+1}</span><span style="font-size:14px;">${s}</span></div>`);
+      html += '</div>';
+    }
+
+    if (r.tips) html += `<div class="modal-section"><div class="modal-section-title">💡 コツ・ポイント</div><div style="font-size:14px;">${r.tips}</div></div>`;
+  } else {
+    if (r.location) {
+      const loc = [r.location, r.locationDetail].filter(Boolean).join(' ・ ');
+      html += `<div class="modal-section"><div class="modal-section-title">📍 たべたばしょ</div><span class="modal-tag">${loc}</span></div>`;
+    }
+    if (r.maker) html += `<div class="modal-section"><div class="modal-section-title">👨‍🍳 つくったひと</div><span class="modal-tag">${r.maker}</span></div>`;
+    if (r.cuisine) html += `<div class="modal-section"><div class="modal-section-title">🍳 りょうりのしゅるい</div><span class="modal-tag">${r.cuisine}</span></div>`;
+    if (r.again) html += `<div class="modal-section"><div class="modal-section-title">🔄 またたべたい？</div><span class="modal-tag">${r.again}</span></div>`;
+  }
+
+  if (r.review) html += `<div class="modal-section"><div class="modal-section-title">💬 かんそう</div><div style="font-size:14px;line-height:1.6;">${r.review}</div></div>`;
+
+  // Delete button
+  html += `<button onclick="deleteRecord(${r.id})" style="margin-top:20px;width:100%;padding:12px;background:var(--pink);border:none;border-radius:14px;font-family:'M PLUS Rounded 1c',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--red);">🗑️ このきろくをけす</button>`;
+
+  document.getElementById('modal-body').innerHTML = html;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(event) {
+  if (!event || event.target === document.getElementById('modal-overlay')) {
+    document.getElementById('modal-overlay').classList.remove('open');
+  }
+}
+
+function deleteRecord(id) {
+  if (!confirm('このきろくをけしますか？')) return;
+  records = records.filter(r => r.id !== id);
+  saveToStorage();
+  closeModal();
+  renderRecords();
+}
+
+// ========== TOAST ==========
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ========== INIT ==========
+// Set today's date as default
+const today = new Date().toISOString().split('T')[0];
+document.getElementById('r-date').value = today;
+document.getElementById('f-date').value = today;
+</script>
+</body>
+</html>
