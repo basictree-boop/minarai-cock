@@ -233,9 +233,10 @@
   .filter-btn.active { background:var(--purple); border-color:#7a5abf; color:#4a2a8a; }
   .search-bar { display:flex; gap:8px; margin-bottom:12px; }
   .search-bar input { flex:1; }
-  .date-filter { display:flex; gap:8px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
-  .date-filter label { margin:0; font-size:13px; }
-  .date-filter input { width:auto; flex:1; min-width:130px; }
+  .date-filter { display:flex; gap:6px; margin-bottom:16px; align-items:center; flex-wrap:wrap; }
+  .date-filter label { margin:0; font-size:13px; flex-shrink:0; }
+  .date-filter input { width:0; flex:1; min-width:0; max-width:100%; font-size:13px; padding:10px 8px; }
+  @media (max-width:480px) { .date-filter { flex-direction:column; align-items:stretch; } .date-filter span { text-align:center; } }
 
   /* RECORD CARDS */
   .records-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:16px; }
@@ -270,19 +271,9 @@
   .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--green); color:white; padding:14px 28px; border-radius:20px; font-weight:900; font-size:16px; box-shadow:0 8px 24px rgba(66,200,120,.5); transition:transform .3s; z-index:300; }
   .toast.show { transform:translateX(-50%) translateY(0); }
 
-  /* CONFIG WARNING */
-  .config-warning { background:#fff3cd; border:2px solid #ffc107; border-radius:16px; padding:16px; margin:16px; font-size:14px; font-weight:700; }
-  .config-warning a { color:var(--orange); }
 </style>
 </head>
 <body>
-
-<!-- CONFIG CHECK BANNER (Firebase未設定時に表示) -->
-<div class="config-warning" id="config-warning" style="display:none;">
-  ⚠️ Firebase の設定がまだです！<br>
-  下の「設定のしかた」を見て、このファイルの上の方にある <code>firebaseConfig</code> を書きかえてください。<br>
-  <a href="#setup-guide">👇 設定のしかたをみる</a>
-</div>
 
 <header class="header">
   <div class="bunny-logo">🐰</div>
@@ -507,45 +498,6 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- =====================================================
-     SETUP GUIDE (Firebase未設定の方向け)
-     ===================================================== -->
-<div id="setup-guide" style="max-width:700px;margin:0 auto;padding:20px 16px 40px;">
-  <div class="card" style="border-color:var(--orange);">
-    <div class="section-title">🔧 Firebaseの設定のしかた</div>
-    <p style="font-size:14px;line-height:1.8;font-weight:700;">
-      このアプリを複数のスマホ・タブレットで使うには、Google Firebase の設定が必要です。<br>
-      むずかしそうに見えますが、10分ほどでできます！
-    </p>
-
-    <div style="margin-top:16px;">
-      <div style="background:var(--mint);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <b>ステップ1</b>：<a href="https://console.firebase.google.com/" target="_blank" style="color:#2a7a4a;">console.firebase.google.com</a> を開いて、Googleアカウントでログイン
-      </div>
-      <div style="background:var(--peach);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <b>ステップ2</b>：「プロジェクトを作成」→ 名前（例：recipe-app）を入力 → 作成
-      </div>
-      <div style="background:var(--yellow);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <b>ステップ3</b>：左メニューの「Firestore Database」→「データベースの作成」→「テストモードで開始」→ ロケーション「asia-northeast1（東京）」→ 有効にする
-      </div>
-      <div style="background:var(--purple);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <b>ステップ4</b>：左上の「プロジェクトの概要」の⚙️歯車 →「プロジェクトの設定」→ 下にスクロール →「マイアプリ」→「&lt;/&gt;」ウェブアプリを追加 → アプリ名を入力 → 「アプリを登録」→ <b>firebaseConfig の中身をコピー</b>
-      </div>
-      <div style="background:var(--pink);border-radius:14px;padding:14px;margin-bottom:10px;">
-        <b>ステップ5</b>：このHTMLファイルをテキストエディタで開いて、上の方にある <code>firebaseConfig</code> の部分をコピーした内容で書きかえる
-      </div>
-      <div style="background:var(--mint);border-radius:14px;padding:14px;">
-        <b>ステップ6</b>：書きかえたファイルを GitHub にアップロードして完成！🎉<br>
-        <small>（GitHubでファイルを直接編集する場合：リポジトリ → ファイルをクリック → 鉛筆マーク → 編集 → コミット）</small>
-      </div>
-    </div>
-
-    <div style="margin-top:16px;background:#fff3cd;border-radius:12px;padding:12px;font-size:13px;font-weight:700;">
-      ⚠️ <b>セキュリティについて</b>：テストモードのFirestoreは作成から30日間は誰でも読み書きできます。家族だけで使う場合は問題ありませんが、URLを知っている人なら誰でもアクセスできる点にご注意ください。本格利用する場合はFirestore Security Rulesの設定をお勧めします。
-    </div>
-  </div>
-</div>
-
 <script>
 // ==========================================
 // STATE
@@ -588,18 +540,50 @@ function setStars(id, val) {
 }
 
 // ==========================================
-// PHOTO
+// PHOTO (自動リサイズ付き：最大800px・700KB以下に圧縮)
 // ==========================================
 function previewPhoto(input, previewId, dataId, hintId) {
   if (!input.files[0]) return;
+  const file = input.files[0];
+  const MAX_PX  = 800;   // 長辺の最大ピクセル数
+  const MAX_KB  = 700;   // 目標ファイルサイズ (KB)
+
   const reader = new FileReader();
   reader.onload = e => {
-    document.getElementById(previewId).src = e.target.result;
-    document.getElementById(previewId).style.display = 'block';
-    document.getElementById(dataId).value = e.target.result;
-    document.getElementById(hintId).style.display = 'none';
+    const img = new Image();
+    img.onload = () => {
+      // リサイズ比を計算
+      let w = img.width, h = img.height;
+      if (w > MAX_PX || h > MAX_PX) {
+        if (w > h) { h = Math.round(h * MAX_PX / w); w = MAX_PX; }
+        else       { w = Math.round(w * MAX_PX / h); h = MAX_PX; }
+      }
+
+      // Canvas に描画して圧縮
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+
+      // 品質を下げながら目標サイズ以下になるまでループ
+      let quality = 0.85;
+      let dataUrl = canvas.toDataURL('image/jpeg', quality);
+      while (dataUrl.length > MAX_KB * 1024 * 1.37 && quality > 0.3) {
+        quality -= 0.1;
+        dataUrl = canvas.toDataURL('image/jpeg', quality);
+      }
+
+      document.getElementById(previewId).src = dataUrl;
+      document.getElementById(previewId).style.display = 'block';
+      document.getElementById(dataId).value = dataUrl;
+      document.getElementById(hintId).style.display = 'none';
+
+      // サイズ表示（デバッグ用・任意で削除OK）
+      const kb = Math.round(dataUrl.length * 0.75 / 1024);
+      console.log(`📷 圧縮後: ${w}x${h}px / 約${kb}KB (品質:${Math.round(quality*100)}%)`);
+    };
+    img.src = e.target.result;
   };
-  reader.readAsDataURL(input.files[0]);
+  reader.readAsDataURL(file);
 }
 
 // ==========================================
@@ -883,12 +867,5 @@ function escHtml(s) {
 document.getElementById('r-date').value = today();
 document.getElementById('f-date').value = today();
 
-// Firebase未設定チェック
-setTimeout(() => {
-  if (!window.dbSave) {
-    document.getElementById('config-warning').style.display = 'block';
-  }
-}, 2000);
-</script>
 </body>
 </html>
