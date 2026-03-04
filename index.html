@@ -646,7 +646,6 @@ async function saveFood() {
       photo: null,
     });
     if (photoDataUrl) {
-      btn.textContent = '📷 写真をアップ中...';
       const photoUrl = await window.uploadPhoto(photoDataUrl);
       await docRef.update({ photo: photoUrl });
     }
