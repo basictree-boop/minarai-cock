@@ -254,6 +254,42 @@
 
   .toast { position:fixed; bottom:30px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--green); color:white; padding:14px 28px; border-radius:20px; font-weight:900; font-size:16px; box-shadow:0 8px 24px rgba(66,200,120,.5); transition:transform .3s; z-index:300; }
   .toast.show { transform:translateX(-50%) translateY(0); }
+
+  /* QUIZ */
+  .card-quiz { border-color:#C8B3FF; }
+  .nav-btn.quiz { background:#FFF0C8; border-color:#FFD700; color:#7a6000; }
+  .quiz-start { text-align:center; padding:20px 0; }
+  .quiz-start .quiz-big { font-size:80px; margin-bottom:16px; }
+  .quiz-level-btns { display:flex; flex-direction:column; gap:10px; margin:20px 0; }
+  .quiz-level-btn { padding:16px; border:none; border-radius:20px; font-family:'M PLUS Rounded 1c',sans-serif; font-size:16px; font-weight:900; cursor:pointer; transition:all .2s; }
+  .quiz-level-btn:hover { transform:translateY(-2px); box-shadow:0 6px 20px var(--shadow); }
+  .qlv1 { background:linear-gradient(135deg,var(--mint),#25c878); color:white; }
+  .qlv2 { background:linear-gradient(135deg,var(--yellow),#e8b800); color:#5a4000; }
+  .qlv3 { background:linear-gradient(135deg,var(--orange),#e06020); color:white; }
+  .quiz-progress { display:flex; align-items:center; gap:10px; margin-bottom:16px; }
+  .quiz-progress-bar { flex:1; height:12px; background:#f0e0d0; border-radius:6px; overflow:hidden; }
+  .quiz-progress-fill { height:100%; background:linear-gradient(90deg,var(--green),#25c878); border-radius:6px; transition:width .4s; }
+  .quiz-q-num { font-size:13px; font-weight:700; color:#999; white-space:nowrap; }
+  .quiz-question-box { background:linear-gradient(135deg,var(--purple),#a07ae8); border-radius:20px; padding:20px; margin-bottom:20px; text-align:center; }
+  .quiz-question-emoji { font-size:48px; margin-bottom:10px; }
+  .quiz-question-text { color:white; font-size:18px; font-weight:900; line-height:1.5; }
+  .quiz-choices { display:flex; flex-direction:column; gap:10px; }
+  .quiz-choice { padding:14px 18px; border:3px solid #e8d5c4; border-radius:16px; background:white; font-family:'M PLUS Rounded 1c',sans-serif; font-size:15px; font-weight:700; cursor:pointer; transition:all .2s; text-align:left; }
+  .quiz-choice:hover:not(:disabled) { border-color:var(--purple); background:#f5f0ff; transform:translateX(4px); }
+  .quiz-choice.correct { background:#d4f5e2; border-color:var(--green); color:#1a6a3a; }
+  .quiz-choice.wrong   { background:#ffe0e8; border-color:var(--red);   color:#8a1a3a; }
+  .quiz-choice:disabled { cursor:default; }
+  .quiz-explain { background:var(--yellow); border-radius:14px; padding:14px; margin-top:14px; font-size:14px; font-weight:700; line-height:1.6; display:none; }
+  .quiz-explain.show { display:block; }
+  .quiz-next-btn { width:100%; margin-top:14px; padding:14px; background:linear-gradient(135deg,var(--purple),#7a5ae8); color:white; border:none; border-radius:16px; font-family:'M PLUS Rounded 1c',sans-serif; font-size:16px; font-weight:900; cursor:pointer; display:none; }
+  .quiz-next-btn.show { display:block; }
+  .quiz-result { text-align:center; padding:10px 0; }
+  .quiz-score-circle { width:140px; height:140px; border-radius:50%; background:linear-gradient(135deg,var(--purple),#7a5ae8); margin:0 auto 16px; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; box-shadow:0 8px 24px rgba(122,90,232,.4); }
+  .quiz-score-num { font-size:42px; font-weight:900; line-height:1; }
+  .quiz-score-total { font-size:16px; font-weight:700; opacity:.85; }
+  .quiz-rank { font-size:32px; margin:10px 0 6px; }
+  .quiz-rank-msg { font-size:18px; font-weight:900; margin-bottom:20px; }
+  .quiz-retry-btn { padding:14px 32px; background:linear-gradient(135deg,var(--orange),#e06020); color:white; border:none; border-radius:20px; font-family:'M PLUS Rounded 1c',sans-serif; font-size:16px; font-weight:900; cursor:pointer; }
 </style>
 </head>
 <body>
@@ -276,6 +312,9 @@
   </button>
   <button class="nav-btn view" onclick="showPage('view')">
     <span class="nav-icon">🔍</span><span>③見てみよう</span>
+  </button>
+  <button class="nav-btn quiz" onclick="showPage('quiz')">
+    <span class="nav-icon">🏆</span><span>④クイズ</span>
   </button>
 </nav>
 
@@ -471,6 +510,44 @@
   </div>
 </div>
 
+<!-- ④ クイズページ -->
+<div class="page" id="page-quiz">
+  <div class="card card-quiz">
+    <div id="quiz-start-screen" class="quiz-start">
+      <div class="quiz-big">🏆</div>
+      <div class="section-title" style="justify-content:center;">料理人クイズ！</div>
+      <p style="font-size:14px;color:#888;margin-bottom:20px;">家庭科の知しきをためしてみよう！</p>
+      <div class="quiz-level-btns">
+        <button class="quiz-level-btn qlv1" onclick="startQuiz(1)">🌱 かんたん（小学3・4年生レベル）</button>
+        <button class="quiz-level-btn qlv2" onclick="startQuiz(2)">🔥 ふつう（小学5年生レベル）</button>
+        <button class="quiz-level-btn qlv3" onclick="startQuiz(3)">⭐ むずかしい（小学6年生レベル）</button>
+      </div>
+    </div>
+    <div id="quiz-play-screen" style="display:none;">
+      <div class="quiz-progress">
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-prog-fill"></div></div>
+        <div class="quiz-q-num" id="quiz-q-num"></div>
+      </div>
+      <div class="quiz-question-box">
+        <div class="quiz-question-emoji" id="quiz-emoji"></div>
+        <div class="quiz-question-text" id="quiz-question"></div>
+      </div>
+      <div class="quiz-choices" id="quiz-choices"></div>
+      <div class="quiz-explain" id="quiz-explain"></div>
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">次の問題へ →</button>
+    </div>
+    <div id="quiz-result-screen" style="display:none;" class="quiz-result">
+      <div class="quiz-score-circle">
+        <div class="quiz-score-num" id="result-score"></div>
+        <div class="quiz-score-total" id="result-total"></div>
+      </div>
+      <div class="quiz-rank" id="result-rank"></div>
+      <div class="quiz-rank-msg" id="result-msg"></div>
+      <button class="quiz-retry-btn" onclick="showQuizStart()">🔄 もう一度チャレンジ！</button>
+    </div>
+  </div>
+</div>
+
 <!-- モーダル -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
@@ -597,28 +674,57 @@ async function saveRecipe() {
   const steps = [];
   document.querySelectorAll('#steps-list textarea').forEach(ta => { if (ta.value.trim()) steps.push(ta.value.trim()); });
   try {
-    // まずFirestoreに保存してIDを取得し、そのIDで画像をStorageにアップ
     const photoDataUrl = document.getElementById('r-photo-data').value;
-    const docRef = await window.dbSave({
-      type: 'recipe', name,
-      date: document.getElementById('r-date').value || today(),
-      category: getSelected('r-category','sel-green'),
-      time: document.getElementById('r-time').value,
-      difficulty: getSelected('r-difficulty','sel-yellow'),
-      servings: document.getElementById('r-servings').value,
-      ingredients, steps,
-      tips: document.getElementById('r-tips').value.trim(),
-      review: document.getElementById('r-review').value.trim(),
-      stars: starState['r-stars'],
-      photo: null,
-    });
-    // 画像があればCloudinaryにアップしてURLをFirestoreに更新
-    if (photoDataUrl) {
-      const photoUrl = await window.uploadPhoto(photoDataUrl);
-      await docRef.update({ photo: photoUrl });
+    // 編集モードの場合は既存ドキュメントを更新
+    if (editingId) {
+      const updateData = {
+        name,
+        date: document.getElementById('r-date').value || today(),
+        category: getSelected('r-category','sel-green'),
+        time: document.getElementById('r-time').value,
+        difficulty: getSelected('r-difficulty','sel-yellow'),
+        servings: document.getElementById('r-servings').value,
+        ingredients, steps,
+        tips: document.getElementById('r-tips').value.trim(),
+        review: document.getElementById('r-review').value.trim(),
+        stars: starState['r-stars'],
+      };
+      // 新しい写真が選ばれた場合のみアップロード
+      if (photoDataUrl && !photoDataUrl.startsWith('http')) {
+        const photoUrl = await window.uploadPhoto(photoDataUrl);
+        updateData.photo = photoUrl;
+      }
+      await firebase.firestore().collection('records').doc(editingId).update(updateData);
+      editingId = null;
+      document.getElementById('r-save-btn').textContent = '🐰 レシピを保存する！';
+      document.getElementById('r-save-btn').style.background = '';
+      const banner = document.getElementById('edit-banner');
+      if (banner) banner.remove();
+      showToast('✏️ レシピを更新したよ！');
+      resetRecipeForm();
+    } else {
+      // 新規保存
+      const photoDataUrlNew = photoDataUrl;
+      const docRef = await window.dbSave({
+        type: 'recipe', name,
+        date: document.getElementById('r-date').value || today(),
+        category: getSelected('r-category','sel-green'),
+        time: document.getElementById('r-time').value,
+        difficulty: getSelected('r-difficulty','sel-yellow'),
+        servings: document.getElementById('r-servings').value,
+        ingredients, steps,
+        tips: document.getElementById('r-tips').value.trim(),
+        review: document.getElementById('r-review').value.trim(),
+        stars: starState['r-stars'],
+        photo: null,
+      });
+      if (photoDataUrlNew) {
+        const photoUrl = await window.uploadPhoto(photoDataUrlNew);
+        await docRef.update({ photo: photoUrl });
+      }
+      showToast('🐰 レシピを保存したよ！');
+      resetRecipeForm();
     }
-    showToast('🐰 レシピを保存したよ！');
-    resetRecipeForm();
   } catch(e) {
     alert('保存にしっぱいしたよ。もういちどためしてね。\n' + e.message);
   } finally {
@@ -633,24 +739,50 @@ async function saveFood() {
   lockUI('⏳ 記録を保存ちゅう...');
   try {
     const photoDataUrl = document.getElementById('f-photo-data').value;
-    const docRef = await window.dbSave({
-      type: 'food', name,
-      date: document.getElementById('f-date').value || today(),
-      location: getSelected('f-location-btns','sel-loc'),
-      locationDetail: document.getElementById('f-location-detail').value.trim(),
-      maker: getSelected('f-maker','sel-green'),
-      cuisine: getSelected('f-cuisine','sel-green'),
-      review: document.getElementById('f-review').value.trim(),
-      stars: starState['f-stars'],
-      again: getSelected('f-again','sel-orange'),
-      photo: null,
-    });
-    if (photoDataUrl) {
-      const photoUrl = await window.uploadPhoto(photoDataUrl);
-      await docRef.update({ photo: photoUrl });
+    if (editingId) {
+      const updateData = {
+        name,
+        date: document.getElementById('f-date').value || today(),
+        location: getSelected('f-location-btns','sel-loc'),
+        locationDetail: document.getElementById('f-location-detail').value.trim(),
+        maker: getSelected('f-maker','sel-green'),
+        cuisine: getSelected('f-cuisine','sel-green'),
+        review: document.getElementById('f-review').value.trim(),
+        stars: starState['f-stars'],
+        again: getSelected('f-again','sel-orange'),
+      };
+      if (photoDataUrl && !photoDataUrl.startsWith('http')) {
+        const photoUrl = await window.uploadPhoto(photoDataUrl);
+        updateData.photo = photoUrl;
+      }
+      await firebase.firestore().collection('records').doc(editingId).update(updateData);
+      editingId = null;
+      document.getElementById('f-save-btn').textContent = '🐰 記録を保存する！';
+      document.getElementById('f-save-btn').style.background = '';
+      const banner = document.getElementById('edit-banner');
+      if (banner) banner.remove();
+      showToast('✏️ 記録を更新したよ！');
+      resetFoodForm();
+    } else {
+      const docRef = await window.dbSave({
+        type: 'food', name,
+        date: document.getElementById('f-date').value || today(),
+        location: getSelected('f-location-btns','sel-loc'),
+        locationDetail: document.getElementById('f-location-detail').value.trim(),
+        maker: getSelected('f-maker','sel-green'),
+        cuisine: getSelected('f-cuisine','sel-green'),
+        review: document.getElementById('f-review').value.trim(),
+        stars: starState['f-stars'],
+        again: getSelected('f-again','sel-orange'),
+        photo: null,
+      });
+      if (photoDataUrl) {
+        const photoUrl = await window.uploadPhoto(photoDataUrl);
+        await docRef.update({ photo: photoUrl });
+      }
+      showToast('🐰 記録を保存したよ！');
+      resetFoodForm();
     }
-    showToast('🐰 記録を保存したよ！');
-    resetFoodForm();
   } catch(e) {
     alert('保存にしっぱいしたよ。もういちどためしてね。\n' + e.message);
   } finally {
@@ -758,7 +890,10 @@ function openModal(id) {
     if (r.again)   html += sec('🔄 また食べたい？', tag(r.again));
   }
   if (r.review) html += sec('💬 感想', '<div style="font-size:14px;line-height:1.6;">' + escHtml(r.review) + '</div>');
-  html += '<button onclick="deleteRecord(\'' + r.id + '\')" style="margin-top:20px;width:100%;padding:12px;background:var(--pink);border:none;border-radius:14px;font-family:\'M PLUS Rounded 1c\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--red);">🗑️ この記録をけす</button>';
+  html += '<div style="display:flex;gap:10px;margin-top:20px;">';
+  html += '<button onclick="editRecord(\'' + r.id + '\')" style="flex:1;padding:12px;background:var(--mint);border:none;border-radius:14px;font-family:\'M PLUS Rounded 1c\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:#2a7a4a;">✏️ 編集する</button>';
+  html += '<button onclick="deleteRecord(\'' + r.id + '\')" style="flex:1;padding:12px;background:var(--pink);border:none;border-radius:14px;font-family:\'M PLUS Rounded 1c\',sans-serif;font-size:14px;font-weight:700;cursor:pointer;color:var(--red);">🗑️ けす</button>';
+  html += '</div>';
   document.getElementById('modal-body').innerHTML = html;
   document.getElementById('modal-overlay').classList.add('open');
 }
@@ -769,6 +904,123 @@ function tag(text) { return '<span class="modal-tag">' + escHtml(text) + '</span
 function closeModal(e) {
   if (!e || e.target === document.getElementById('modal-overlay'))
     document.getElementById('modal-overlay').classList.remove('open');
+}
+
+// 編集中のレコードID
+let editingId = null;
+
+function editRecord(id) {
+  const r = (window._records || []).find(r => r.id === id);
+  if (!r) return;
+  closeModal();
+  editingId = id;
+
+  if (r.type === 'recipe') {
+    showPage('recipe');
+    // フォームにデータを流し込む
+    document.getElementById('r-name').value  = r.name || '';
+    document.getElementById('r-date').value  = r.date || today();
+    document.getElementById('r-time').value  = r.time || '';
+    document.getElementById('r-servings').value = r.servings || '';
+    document.getElementById('r-tips').value  = r.tips || '';
+    document.getElementById('r-review').value = r.review || '';
+    // カテゴリ
+    document.querySelectorAll('#r-category .tog-btn').forEach(b => {
+      if ((r.category || '').includes(b.textContent.trim())) b.classList.add('sel-green');
+    });
+    // むずかしさ
+    document.querySelectorAll('#r-difficulty .tog-btn').forEach(b => {
+      if ((r.difficulty || '').includes(b.textContent.trim())) b.classList.add('sel-yellow');
+    });
+    // 星
+    setStars('r-stars', r.stars || 0);
+    // 材料
+    if (r.ingredients && r.ingredients.length) {
+      document.getElementById('ingredients-list').innerHTML = r.ingredients.map(i =>
+        '<div class="ingredient-row"><input type="text" value="' + escHtml(i.name) + '" placeholder="材料の名前"><input type="text" class="ingredient-amount" value="' + escHtml(i.amount) + '" placeholder="量"><button class="btn-remove" onclick="removeRow(this,\'ingredients-list\')">✕</button></div>'
+      ).join('');
+    }
+    // 手順
+    if (r.steps && r.steps.length) {
+      document.getElementById('steps-list').innerHTML = r.steps.map((s, i) =>
+        '<div class="step-row"><div class="step-number">' + (i+1) + '</div><textarea placeholder="次にすること...">' + escHtml(s) + '</textarea><button class="btn-remove" onclick="removeStep(this)">✕</button></div>'
+      ).join('');
+    }
+    // 写真
+    if (r.photo) {
+      document.getElementById('r-preview').src = r.photo;
+      document.getElementById('r-preview').style.display = 'block';
+      document.getElementById('r-hint').style.display = 'none';
+      document.getElementById('r-photo-data').value = r.photo;
+    }
+    // 保存ボタンを「更新」表示に
+    document.getElementById('r-save-btn').textContent = '✏️ レシピを更新する！';
+    document.getElementById('r-save-btn').style.background = 'linear-gradient(135deg,#42a5f5,#1565c0)';
+    // 編集中バナーを表示
+    showEditBanner('recipe');
+
+  } else {
+    showPage('food');
+    document.getElementById('f-name').value  = r.name || '';
+    document.getElementById('f-date').value  = r.date || today();
+    document.getElementById('f-location-detail').value = r.locationDetail || '';
+    document.getElementById('f-review').value = r.review || '';
+    // 場所
+    document.querySelectorAll('#f-location-btns .tog-btn').forEach(b => {
+      if ((r.location || '').includes(b.textContent.trim())) b.classList.add('sel-loc');
+    });
+    // 作った人
+    document.querySelectorAll('#f-maker .tog-btn').forEach(b => {
+      if ((r.maker || '').includes(b.textContent.trim())) b.classList.add('sel-green');
+    });
+    // 料理の種類
+    document.querySelectorAll('#f-cuisine .tog-btn').forEach(b => {
+      if ((r.cuisine || '').includes(b.textContent.trim())) b.classList.add('sel-green');
+    });
+    // また食べたい
+    document.querySelectorAll('#f-again .tog-btn').forEach(b => {
+      if ((r.again || '').includes(b.textContent.trim())) b.classList.add('sel-orange');
+    });
+    // 星
+    setStars('f-stars', r.stars || 0);
+    // 写真
+    if (r.photo) {
+      document.getElementById('f-preview').src = r.photo;
+      document.getElementById('f-preview').style.display = 'block';
+      document.getElementById('f-hint').style.display = 'none';
+      document.getElementById('f-photo-data').value = r.photo;
+    }
+    document.getElementById('f-save-btn').textContent = '✏️ 記録を更新する！';
+    document.getElementById('f-save-btn').style.background = 'linear-gradient(135deg,#42a5f5,#1565c0)';
+    showEditBanner('food');
+  }
+}
+
+function showEditBanner(type) {
+  const pageId = 'page-' + type;
+  if (document.getElementById('edit-banner')) return;
+  const banner = document.createElement('div');
+  banner.id = 'edit-banner';
+  banner.style.cssText = 'background:#42a5f5;color:white;text-align:center;padding:10px;font-weight:900;font-size:14px;border-radius:14px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;';
+  banner.innerHTML = '<span>✏️ 編集モード中</span><button onclick="cancelEdit()" style="background:rgba(255,255,255,.3);border:none;border-radius:8px;padding:4px 10px;font-family:\'M PLUS Rounded 1c\',sans-serif;font-weight:700;color:white;cursor:pointer;">キャンセル</button>';
+  const card = document.querySelector('#' + pageId + ' .card');
+  card.insertBefore(banner, card.firstChild);
+}
+
+function cancelEdit() {
+  const type = editingId && (window._records||[]).find(r=>r.id===editingId)?.type;
+  editingId = null;
+  if (type === 'recipe') {
+    resetRecipeForm();
+    document.getElementById('r-save-btn').textContent = '🐰 レシピを保存する！';
+    document.getElementById('r-save-btn').style.background = '';
+  } else {
+    resetFoodForm();
+    document.getElementById('f-save-btn').textContent = '🐰 記録を保存する！';
+    document.getElementById('f-save-btn').style.background = '';
+  }
+  const banner = document.getElementById('edit-banner');
+  if (banner) banner.remove();
 }
 
 async function deleteRecord(id) {
@@ -795,6 +1047,142 @@ function fmtDate(d) {
 }
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// クイズデータ（小学2年生までの漢字・家庭科6年分）
+// ============================================================
+const QUIZ_DATA = {
+  1: [ // かんたん（3・4年生レベル）
+    { e:'🥚', q:'たまごは何℃くらいのお湯でゆでると「ゆでたまご」になる？', c:['100℃','50℃','30℃','10℃'], a:0, ex:'水は100℃でふっとうします。たまごをふっとうしたお湯でゆでると「ゆでたまご」になります。' },
+    { e:'🔪', q:'野さいを切るとき、何の上で切ると安全？', c:['まないた','本','テーブル','タオル'], a:0, ex:'まないたの上で切ると安全です。かたい木やプラスチックでできています。' },
+    { e:'🍚', q:'ごはんを炊くとき、お米をはじめに何をする？', c:['とぐ（あらう）','ゆでる','いためる','くだく'], a:0, ex:'お米は炊く前に水でといで、よごれやぬかをとります。' },
+    { e:'🧂', q:'料理に入れると、あまくなるちょうみ料はどれ？', c:['さとう','しお','しょうゆ','お酢'], a:0, ex:'さとうを入れるとあまくなります。しおはしょっぱく、お酢はすっぱくなります。' },
+    { e:'🫧', q:'食事の前に手をあらうのはなぜ？', c:['ばいきんを落とすため','手がかたくなるから','料理がおいしくなるから','ルールだから'], a:0, ex:'手にはたくさんのばいきんがついています。しっかりあらってばいきんを落としましょう。' },
+    { e:'🥦', q:'野さいをゆでるとき、水からゆでるのはどれ？', c:['じゃがいも','ほうれんそう','ブロッコリー','こまつな'], a:0, ex:'じゃがいもは中まで火が通りやすいよう水からゆでます。葉もの野さいはふっとうしたお湯からゆでます。' },
+    { e:'🍳', q:'フライパンで料理するとき、火が強すぎるとどうなる？', c:['こげてしまう','おいしくなる','早くできる','やわらかくなる'], a:0, ex:'火が強すぎると食べものが外がわはこげて中はなまのままになってしまいます。' },
+    { e:'🧊', q:'食べものをながく新せんにたもつには？', c:['れいぞう（れいとう）する','日なたにおく','水につける','あたためる'], a:0, ex:'れいぞう庫に入れると低い温度でばいきんがふえにくくなり、食べものが長もちします。' },
+    { e:'🍱', q:'お弁当を作るとき、なぜご飯をさましてから入れる？', c:['水気（じゅうき）が出てくさりやすいから','見た目がいいから','重くなるから','早く食べられるから'], a:0, ex:'あたたかいままだと水分がでてごはんがべちゃべちゃになり、ばいきんもふえやすくなります。' },
+    { e:'🌡️', q:'食べものが一番くさりやすい温度はどのくらい？', c:['20〜40℃','0〜5℃','60〜80℃','100℃以上'], a:0, ex:'20〜40℃はばいきんがもっともよくふえる温度です。食べものはなるべく早くれいぞう庫に入れましょう。' },
+  ],
+  2: [ // ふつう（5年生レベル）
+    { e:'🌾', q:'ごはんに多くふくまれる、エネルギーのもとになる大切なえいようそはどれ？', c:['たんすい化物（でんぷん）','たんぱくしつ','しぼう','ビタミン'], a:0, ex:'ごはんやパン、めんにはたんすい化物（でんぷん）が多くふくまれ、体を動かすエネルギーになります。' },
+    { e:'🥩', q:'肉や魚に多くふくまれる、体をつくるえいようそはどれ？', c:['たんぱくしつ','たんすい化物','ビタミンC','食物せんい'], a:0, ex:'たんぱくしつは体のきん肉や内ぞうをつくる大切なえいようそです。肉・魚・大豆・たまごに多いです。' },
+    { e:'🥕', q:'にんじんに多くふくまれる、目や皮ふによいえいようそはどれ？', c:['ビタミンA','ビタミンC','カルシウム','てつ'], a:0, ex:'ビタミンAは目のはたらきをたすけたり、皮ふや口の中をまもる大切なえいようそです。' },
+    { e:'🦴', q:'ほねや歯をじょうぶにするえいようそはどれ？', c:['カルシウム','ビタミンC','たんぱくしつ','食物せんい'], a:0, ex:'カルシウムはほねや歯をつくるはたらきがあります。牛にゅうやチーズ・ほうれんそうに多いです。' },
+    { e:'🍱', q:'1日3食のえいようのバランスをかんがえるとき、5つの食品グループがある。どのグループに「ごはん・パン」がふくまれる？', c:['こくるい（エネルギーのもと）','野さいるい','にゅう・たまごるい','肉・魚るい'], a:0, ex:'ごはん・パン・めんはこくるいといい、体を動かすエネルギーのもとになる食品グループです。' },
+    { e:'🔥', q:'ゆでる・むす・いためる・やく、のうち、油を使う調理法はどれ？', c:['いためる','ゆでる','むす','どれもちがう'], a:0, ex:'いためるは油を使ってフライパンなどで食べものを加熱する調理法です。' },
+    { e:'🥗', q:'ほうれんそうをゆでた後、水につけてしぼるのはなぜ？', c:['えぐみをとるため','火を消すため','あまくするため','やわらかくするため'], a:0, ex:'ほうれんそうにはシュウ酸というえぐみのせいぶんがあります。ゆでてから水にさらすとえぐみが取れます。' },
+    { e:'🫙', q:'みそ・しょうゆ・お酢・みりんは何とよばれる？', c:['ちょうみ料','えいようそ','保ぞん料','食品グループ'], a:0, ex:'みそ・しょうゆ・しお・さとう・お酢・みりんなど料理の味をつけるものをちょうみ料といいます。' },
+    { e:'🌿', q:'野さいをあらうとき、はじめに何をする？', c:['水でよくあらう','切る','ゆでる','皮をむく'], a:0, ex:'野さいを調理する前に水でよくあらって、土やよごれ・農やくを落とします。' },
+    { e:'⚖️', q:'レシピで「大さじ1」は何ml？', c:['15ml','5ml','10ml','30ml'], a:0, ex:'大さじ1は15mlです。小さじ1は5mlで、大さじの3分の1の量です。' },
+  ],
+  3: [ // むずかしい（6年生レベル）
+    { e:'🍽️', q:'「まごわやさしい」という言葉がある。「ま」は何のことを表す？', c:['豆（まめ）るい','まぐろ','まつたけ','マーガリン'], a:0, ex:'「まごわやさしい」は、ま＝豆、ご＝ごま、わ＝わかめ（海そう）、や＝野さい、さ＝魚、し＝しいたけ（きのこ）、い＝いも、のそれぞれの食品の頭文字です。' },
+    { e:'🫀', q:'血をつくるのにひつような、肉や赤い野さいに多いえいようそはどれ？', c:['てつ（鉄分）','カルシウム','ビタミンA','食物せんい'], a:0, ex:'てつ（鉄分）は血の中の赤いせいぶんをつくります。レバーや赤身の肉、ほうれんそうに多くふくまれます。' },
+    { e:'🧬', q:'食物せんいにはどんなはたらきがある？', c:['おなかのちょうしをととのえる','ほねをじょうぶにする','目をよくする','エネルギーになる'], a:0, ex:'食物せんいはちょうのはたらきを活発にし、便秘をふせぐはたらきがあります。野さいやきのこに多いです。' },
+    { e:'🌡️', q:'食中どくをふせぐための「3つのげんそく」に入らないのはどれ？', c:['よくふる','つけない','ふやさない','やっつける'], a:0, ex:'食中どくのさんげんそくは①つけない（手あらい）②ふやさない（冷ぞう）③やっつける（加熱）です。' },
+    { e:'🫧', q:'食器をあらうとき、どのじゅんばんが正しい？', c:['コップ→食器→なべ・フライパン','なべ→コップ→食器','食器→なべ→コップ','どれでもよい'], a:0, ex:'よごれの少ないコップや食器からあらい、最後に油のよごれが多いなべやフライパンをあらうのが正しい。' },
+    { e:'🌾', q:'日本の食文化でとくにたいせつにされてきた「だし」のうま味せいぶんを多くふくむ食品はどれ？', c:['こんぶ・かつおぶし','さとう・しお','バター・生クリーム','小麦こ・かたくり粉'], a:0, ex:'こんぶにはグルタミン酸、かつおぶしにはイノシン酸といううま味せいぶんが多くふくまれます。' },
+    { e:'♻️', q:'食品ロスとはどういう意味？', c:['まだ食べられるのにすてられる食べもの','くさった食べもの','外国からくる食べもの','れいとう食品のこと'], a:0, ex:'食品ロスとは、まだ食べられるのにすてられてしまう食べもののことです。日本では年間約472万トンもあります。' },
+    { e:'🥗', q:'野さいに多くふくまれる「ビタミンC」をたもつ調理のくふうはどれ？', c:['切ったらすぐ調理する','長くゆでる','高温でいためる','水につけておく'], a:0, ex:'ビタミンCは水にとけやすく、熱にもよわいです。切ったらすぐ調理することで損失を少なくできます。' },
+    { e:'🍱', q:'「一汁三菜」とはどんな食事スタイル？', c:['ごはん・汁もの・おかず3品','パン・スープ・デザート','ごはん・3種のどんぶり','汁もの3杯とごはん'], a:0, ex:'「一汁三菜」は日本の伝とう的な食事スタイルで、ごはん・汁もの1品・おかず3品（主さい1・副さい2）のことです。' },
+    { e:'🌍', q:'フェアトレードとはどういう意味？', c:['開発中の国の人に正しいねだんをはらって買うこと','外国の食べものを安く買うこと','国内の食べものだけを買うこと','有機野さいを買うこと'], a:0, ex:'フェアトレードは、開発中の国の生産者に正しいねだんをはらうことで、生産者の生活をまもるしくみです。' },
+  ]
+};
+
+// ============================================================
+// クイズ動作
+// ============================================================
+let quizQuestions = [], quizIndex = 0, quizScore = 0, quizAnswered = false;
+
+function startQuiz(level) {
+  const all = [...QUIZ_DATA[level]];
+  // シャッフルして10問
+  for (let i = all.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [all[i], all[j]] = [all[j], all[i]];
+  }
+  quizQuestions = all.slice(0, 10);
+  quizIndex = 0; quizScore = 0; quizAnswered = false;
+  document.getElementById('quiz-start-screen').style.display  = 'none';
+  document.getElementById('quiz-result-screen').style.display = 'none';
+  document.getElementById('quiz-play-screen').style.display   = 'block';
+  showQuestion();
+}
+
+function showQuestion() {
+  quizAnswered = false;
+  const q = quizQuestions[quizIndex];
+  const total = quizQuestions.length;
+  // プログレスバー
+  document.getElementById('quiz-prog-fill').style.width = ((quizIndex / total) * 100) + '%';
+  document.getElementById('quiz-q-num').textContent = (quizIndex + 1) + ' / ' + total;
+  document.getElementById('quiz-emoji').textContent = q.e;
+  document.getElementById('quiz-question').textContent = q.q;
+  document.getElementById('quiz-explain').textContent = '';
+  document.getElementById('quiz-explain').classList.remove('show');
+  document.getElementById('quiz-next-btn').classList.remove('show');
+  // 選たくしをシャッフルして表示
+  const indices = [0,1,2,3];
+  for (let i = 3; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [indices[i],indices[j]]=[indices[j],indices[i]]; }
+  const correctText = q.c[q.a];
+  document.getElementById('quiz-choices').innerHTML = indices.map(i => {
+    return '<button class="quiz-choice" onclick="answerQuiz(this,\'' + escHtml(q.c[i]) + '\',\'' + escHtml(correctText) + '\')">' + escHtml(q.c[i]) + '</button>';
+  }).join('');
+}
+
+function answerQuiz(btn, chosen, correct) {
+  if (quizAnswered) return;
+  quizAnswered = true;
+  const q = quizQuestions[quizIndex];
+  const isCorrect = chosen === correct;
+  if (isCorrect) quizScore++;
+  // 全ボタンを正解・不正解で色分け
+  document.querySelectorAll('.quiz-choice').forEach(b => {
+    b.disabled = true;
+    if (b.textContent === correct) b.classList.add('correct');
+    else if (b === btn && !isCorrect) b.classList.add('wrong');
+  });
+  // 解説表示
+  const ex = document.getElementById('quiz-explain');
+  ex.textContent = (isCorrect ? '✅ 正解！　' : '❌ ざんねん！　') + q.ex;
+  ex.classList.add('show');
+  document.getElementById('quiz-next-btn').classList.add('show');
+  document.getElementById('quiz-next-btn').textContent =
+    quizIndex + 1 >= quizQuestions.length ? '結果を見る 🎉' : '次の問題へ →';
+}
+
+function nextQuestion() {
+  quizIndex++;
+  if (quizIndex >= quizQuestions.length) {
+    showResult();
+  } else {
+    showQuestion();
+  }
+}
+
+function showResult() {
+  document.getElementById('quiz-play-screen').style.display   = 'none';
+  document.getElementById('quiz-result-screen').style.display = 'block';
+  const total = quizQuestions.length;
+  document.getElementById('result-score').textContent = quizScore;
+  document.getElementById('result-total').textContent = '/ ' + total + '問';
+  const pct = quizScore / total;
+  let rank, msg;
+  if (pct >= 1.0)       { rank = '👑'; msg = 'かんぺき！！　りょうりの天才だ！'; }
+  else if (pct >= 0.8)  { rank = '🥇'; msg = 'すごい！　もう少しで満点！'; }
+  else if (pct >= 0.6)  { rank = '🥈'; msg = 'よくできました！　もっと上を目指そう！'; }
+  else if (pct >= 0.4)  { rank = '🥉'; msg = 'もう少し！　また挑戦してみよう！'; }
+  else                  { rank = '🐣'; msg = 'これから！　一しょにべんきょうしよう！'; }
+  document.getElementById('result-rank').textContent = rank;
+  document.getElementById('result-msg').textContent  = msg;
+}
+
+function showQuizStart() {
+  document.getElementById('quiz-result-screen').style.display = 'none';
+  document.getElementById('quiz-play-screen').style.display   = 'none';
+  document.getElementById('quiz-start-screen').style.display  = 'block';
 }
 
 document.getElementById('r-date').value = today();
