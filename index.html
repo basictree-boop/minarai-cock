@@ -1397,16 +1397,13 @@ function cvSpawnItem() {
 
   const el = document.createElement('div');
   el.className = 'cv-item';
-  const startX = clip.offsetWidth + 10;
+  const W = clip.offsetWidth || window.innerWidth;
+  const startX = W + 10;
   el.style.left = startX + 'px';
-  el.innerHTML = `
-    <div class="cv-food">${data.emoji}</div>
-    <div class="cv-plate"></div>
-    ${data.label ? `<div class="cv-label">${escHtml(data.label.slice(0,8))}</div>` : ''}
-  `;
+  el.innerHTML = `<div class="cv-food">${data.emoji}</div><div class="cv-plate"></div>${data.label ? `<div class="cv-label">${escHtml(data.label.slice(0,8))}</div>` : ''}`;
   clip.appendChild(el);
 
-  const speed = 60 + Math.random() * 30; // 60〜90 px/sec
+  const speed = 70 + Math.random() * 40; // 70〜110 px/sec
   cvItems.push({ el, x: startX, speed, data, eaten: false });
 }
 
@@ -1468,9 +1465,12 @@ function cvReact(type) {
 document.getElementById('r-name').addEventListener('input', () => { if(typeof cvReact==='function') cvReact('input'); });
 document.getElementById('f-name').addEventListener('input', () => { if(typeof cvReact==='function') cvReact('input'); });
 
-// すぐに開始（DOMContentLoadedが済んでいる場合）
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-  setTimeout(cvInit, 600);
+// コンベア起動（確実にDOM完成後）
+function _startCv() { setTimeout(cvInit, 300); }
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', _startCv);
+} else {
+  _startCv();
 }
 
 document.getElementById('r-date').value = today();
