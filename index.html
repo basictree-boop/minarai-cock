@@ -330,12 +330,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    animation: conveyorSlide linear forwards;
     pointer-events: none;
-  }
-  @keyframes conveyorSlide {
-    from { left: 105%; }
-    to   { left: -10%; }
+    will-change: transform;
   }
   .cv-plate {
     width: 56px; height: 14px;
@@ -1331,28 +1327,57 @@ function showQuizStart() {
 const DEFAULT_FOODS = ['🍣','🍱','🍜','🍛','🍰','🥗','🍳','🍙','🍤','🥘','🍞','🥚','🍲','🍝','🥩','🍦','🍩','🥕','🍎','🧆'];
 const SPEECH_MSGS   = ['おいしそう！','パクっ！','もぐもぐ♪','うまっ！','もっとちょうだい！','むしゃむしゃ！','いただきます！','さいこう！'];
 
-let cvQueue      = [];   // 流すアイテムのキュー
-let cvActive     = [];   // 現在流れているDOM要素
+let cvQueue      = [];
+let cvItems      = [];   // { el, x, speed }
 let cvSpawnTimer = null;
-let cvBunnyTimer = null;
 let cvSpeechTimer= null;
 let cvEating     = false;
+let cvRafId      = null;
+let cvLastTime   = null;
 
 function cvInit() {
-  // 記録データをキューに入れる
   cvRefreshQueue();
-  cvStartSpawn();
+  // rAFループ開始
+  cvRafId = requestAnimationFrame(cvLoop);
+  // 定期スポーン
+  cvSpawnItem();
+  cvSpawnTimer = setInterval(cvSpawnItem, 2400);
+}
+
+function cvLoop(ts) {
+  if (!cvLastTime) cvLastTime = ts;
+  const dt = Math.min(ts - cvLastTime, 100); // ms、最大100ms
+  cvLastTime = ts;
+
+  const clip = document.getElementById('conveyor-clip');
+  if (clip) {
+    const W = clip.offsetWidth;
+    cvItems = cvItems.filter(item => {
+      item.x -= item.speed * dt / 1000; // px/sec
+      item.el.style.left = item.x + 'px';
+      if (item.x < -80) {
+        item.el.remove();
+        return false;
+      }
+      // うさぎの口に届いたら食べる (x < 80px)
+      if (!item.eaten && item.x < 80) {
+        item.eaten = true;
+        cvDoEat(item.data);
+      }
+      return true;
+    });
+  }
+  cvRafId = requestAnimationFrame(cvLoop);
 }
 
 function cvRefreshQueue() {
   const records = (window._records || []);
   const named   = records.map(r => ({ emoji: cvEmojiForRecord(r), label: r.name }));
   const defaults= DEFAULT_FOODS.map(e => ({ emoji: e, label: null }));
-  // 記録があれば mix、なければ default のみ
   const pool = named.length > 0
     ? [...named, ...named, ...defaults].sort(() => Math.random() - .5)
     : defaults.slice().sort(() => Math.random() - .5);
-  cvQueue = [...pool, ...pool]; // 十分な量
+  cvQueue = [...pool, ...pool];
 }
 
 function cvEmojiForRecord(r) {
@@ -1364,45 +1389,25 @@ function cvEmojiForRecord(r) {
   return '🍽️';
 }
 
-function cvStartSpawn() {
-  if (cvSpawnTimer) clearInterval(cvSpawnTimer);
-  cvSpawnSpeedMs = 2200;
-  cvSpawnTimer = setInterval(() => cvSpawnItem(), cvSpawnSpeedMs);
-  cvSpawnItem(); // 即座に1個
-}
-
-let cvSpawnSpeedMs = 2200;
-
-function cvSpawnItem(force) {
+function cvSpawnItem() {
   const clip = document.getElementById('conveyor-clip');
   if (!clip) return;
   if (cvQueue.length === 0) cvRefreshQueue();
-  const item = cvQueue.shift();
+  const data = cvQueue.shift();
 
   const el = document.createElement('div');
   el.className = 'cv-item';
-  const duration = 5 + Math.random() * 3; // 5〜8秒
-  el.style.cssText = `animation-duration:${duration}s;`;
+  const startX = clip.offsetWidth + 10;
+  el.style.left = startX + 'px';
   el.innerHTML = `
-    <div class="cv-food">${item.emoji}</div>
+    <div class="cv-food">${data.emoji}</div>
     <div class="cv-plate"></div>
-    ${item.label ? `<div class="cv-label">${escHtml(item.label.slice(0,8))}</div>` : ''}
+    ${data.label ? `<div class="cv-label">${escHtml(data.label.slice(0,8))}</div>` : ''}
   `;
   clip.appendChild(el);
-  cvActive.push({ el, duration: duration * 1000 });
 
-  el.addEventListener('animationend', () => {
-    el.remove();
-    cvActive = cvActive.filter(a => a.el !== el);
-  });
-
-  // うさぎの食べる判定（左端に着く直前）
-  setTimeout(() => cvCheckEat(el, item), (duration - 0.8) * 1000);
-}
-
-function cvCheckEat(el, item) {
-  if (!document.contains(el)) return;
-  cvDoEat(item);
+  const speed = 60 + Math.random() * 30; // 60〜90 px/sec
+  cvItems.push({ el, x: startX, speed, data, eaten: false });
 }
 
 function cvDoEat(item) {
@@ -1412,18 +1417,15 @@ function cvDoEat(item) {
   const speech = document.getElementById('cv-speech');
   if (!bunny || !speech) return;
 
-  // nom アニメ
   bunny.classList.remove('nom','happy','bounce-in');
   void bunny.offsetWidth;
   bunny.classList.add('nom');
 
-  // セリフ位置をうさぎの上に fixed で配置
-  const wrap  = document.getElementById('cv-bunny-wrap');
-  const rect  = wrap ? wrap.getBoundingClientRect() : { left: 14, top: 60, width: 50 };
-  speech.style.left = (rect.left + rect.width + 6) + 'px';
-  speech.style.top  = (rect.top - 10) + 'px';
+  const wrap = document.getElementById('cv-bunny-wrap');
+  const rect = wrap ? wrap.getBoundingClientRect() : { left:14, top:60, width:50 };
+  speech.style.left = (rect.left + rect.width + 8) + 'px';
+  speech.style.top  = (rect.top - 14) + 'px';
 
-  // セリフ内容
   const msg = item.label
     ? `${item.label.slice(0,6)}、うまっ！`
     : SPEECH_MSGS[Math.floor(Math.random() * SPEECH_MSGS.length)];
@@ -1451,13 +1453,10 @@ function cvReact(type) {
     quiz:  ['クイズ！？','むずかしいな〜','わかるかな？'],
   };
   const pool = msgs[type] || msgs.page;
-
-  // セリフ位置
   const wrap = document.getElementById('cv-bunny-wrap');
-  const rect = wrap ? wrap.getBoundingClientRect() : { left: 14, top: 60, width: 50 };
-  speech.style.left = (rect.left + rect.width + 6) + 'px';
-  speech.style.top  = (rect.top - 10) + 'px';
-
+  const rect = wrap ? wrap.getBoundingClientRect() : { left:14, top:60, width:50 };
+  speech.style.left = (rect.left + rect.width + 8) + 'px';
+  speech.style.top  = (rect.top - 14) + 'px';
   speech.textContent = pool[Math.floor(Math.random() * pool.length)];
   speech.classList.add('show');
   bunny.classList.add(type === 'save' ? 'happy' : 'bounce-in');
