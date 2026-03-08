@@ -47,6 +47,7 @@
     (snap) => {
       window._records = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       if (typeof renderRecords === "function") renderRecords();
+      if (typeof cvRefreshQueue === "function") cvRefreshQueue();
       updateSyncStatus("synced");
     },
     (err) => { console.error(err); updateSyncStatus("error"); }
@@ -289,7 +290,129 @@
   .quiz-score-total { font-size:16px; font-weight:700; opacity:.85; }
   .quiz-rank { font-size:32px; margin:10px 0 6px; }
   .quiz-rank-msg { font-size:18px; font-weight:900; margin-bottom:20px; }
-  .quiz-retry-btn { padding:14px 32px; background:linear-gradient(135deg,var(--orange),#e06020); color:white; border:none; border-radius:20px; font-family:'M PLUS Rounded 1c',sans-serif; font-size:16px; font-weight:900; cursor:pointer; }
+  /* ===== CONVEYOR BELT ===== */
+  .conveyor-wrap {
+    background: linear-gradient(180deg, #fff8f0 0%, #ffe8d0 100%);
+    border-bottom: 3px solid #ffcba0;
+    overflow: hidden;
+    position: relative;
+    height: 110px;
+    user-select: none;
+  }
+  /* ベルト本体 */
+  .conveyor-belt {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 28px;
+    background: repeating-linear-gradient(90deg, #d4a06a 0px, #d4a06a 30px, #bf8c55 30px, #bf8c55 60px);
+    border-top: 4px solid #a06030;
+    border-bottom: 4px solid #a06030;
+  }
+  /* 流れるアニメ */
+  .conveyor-belt::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(90deg, rgba(255,255,255,.15) 0px, rgba(255,255,255,.15) 15px, transparent 15px, transparent 30px);
+    animation: beltMove 1s linear infinite;
+  }
+  @keyframes beltMove { from{background-position:0 0} to{background-position:-60px 0} }
+
+  /* お皿アイテム */
+  .cv-item {
+    position: absolute;
+    bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: conveyorSlide linear forwards;
+    pointer-events: none;
+  }
+  @keyframes conveyorSlide {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-130vw); }
+  }
+  .cv-plate {
+    width: 56px; height: 14px;
+    background: radial-gradient(ellipse at 50% 30%, #fff 60%, #e8e0d8 100%);
+    border-radius: 50%;
+    border: 2px solid #d0c0b0;
+    box-shadow: 0 3px 6px rgba(0,0,0,.15);
+    position: relative;
+  }
+  .cv-food {
+    font-size: 28px;
+    line-height: 1;
+    margin-bottom: -4px;
+    filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
+    transition: transform .1s;
+  }
+  .cv-label {
+    font-size: 9px;
+    font-weight: 900;
+    color: #8a5a2a;
+    background: rgba(255,255,240,.85);
+    border-radius: 6px;
+    padding: 1px 4px;
+    max-width: 64px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 2px;
+  }
+
+  /* うさぎ */
+  .cv-bunny-wrap {
+    position: absolute;
+    left: 12px;
+    bottom: 28px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 10;
+  }
+  .cv-bunny {
+    font-size: 48px;
+    line-height: 1;
+    transition: transform .1s;
+    transform-origin: bottom center;
+  }
+  .cv-bunny.nom   { animation: nomNom .25s ease-in-out 3; }
+  .cv-bunny.happy { animation: bunnyHappy .4s ease-in-out; }
+  .cv-bunny.bounce-in { animation: bunnyBounce .5s ease-out; }
+  @keyframes nomNom     { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.82) translateY(4px)} }
+  @keyframes bunnyHappy { 0%,100%{transform:rotate(0)} 25%{transform:rotate(-15deg) scale(1.1)} 75%{transform:rotate(15deg) scale(1.1)} }
+  @keyframes bunnyBounce { 0%{transform:translateY(20px) scale(.8)} 60%{transform:translateY(-8px) scale(1.05)} 100%{transform:translateY(0) scale(1)} }
+  .cv-speech {
+    position: absolute;
+    bottom: 58px;
+    left: 52px;
+    background: white;
+    border: 2px solid #ffb3c6;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 900;
+    color: #d04080;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity .2s;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+  }
+  .cv-speech::before {
+    content: '';
+    position: absolute;
+    left: -8px; top: 50%;
+    transform: translateY(-50%);
+    border: 5px solid transparent;
+    border-right-color: #ffb3c6;
+  }
+  .cv-speech.show { opacity: 1; }
+
+  ruby { ruby-align: center; }
+  rt { font-size: 0.5em; font-weight: 700; color: inherit; opacity: 0.8; }
+  label rt { opacity: 0.75; }
 </style>
 </head>
 <body>
@@ -308,26 +431,35 @@
     <span class="nav-icon">📖</span><span>①レシピをかく</span>
   </button>
   <button class="nav-btn food" onclick="showPage('food')">
-    <span class="nav-icon">🍽️</span><span>②食べたものを記録</span>
+    <span class="nav-icon">🍽️</span><span>②<ruby>食<rt>た</rt></ruby>べたものを<ruby>記録<rt>きろく</rt></ruby></span>
   </button>
   <button class="nav-btn view" onclick="showPage('view')">
-    <span class="nav-icon">🔍</span><span>③見てみよう</span>
+    <span class="nav-icon">🔍</span><span>③<ruby>見<rt>み</rt></ruby>てみよう</span>
   </button>
   <button class="nav-btn quiz" onclick="showPage('quiz')">
     <span class="nav-icon">🏆</span><span>④クイズ</span>
   </button>
 </nav>
 
+<!-- 🐰 回転ずしコンベア -->
+<div class="conveyor-wrap" id="conveyor-wrap">
+  <div class="cv-bunny-wrap">
+    <div class="cv-bunny" id="cv-bunny">🐰</div>
+    <div class="cv-speech" id="cv-speech">おいしそう！</div>
+  </div>
+  <div class="conveyor-belt"></div>
+</div>
+
 <!-- ① レシピページ -->
 <div class="page active" id="page-recipe">
   <div class="card card-recipe">
     <div class="section-title">📖 おいしかったレシピをかこう！</div>
-    <div class="hint-box">🐰 作り方をくわしくかくと、またつくれるよ！</div>
+    <div class="hint-box">🐰 <ruby>作<rt>つく</rt></ruby>り<ruby>方<rt>かた</rt></ruby>をくわしくかくと、またつくれるよ！</div>
 
-    <label>🍳 料理の名前 *</label>
+    <label>🍳 <ruby>料理<rt>りょうり</rt></ruby>の<ruby>名前<rt>なまえ</rt></ruby> *</label>
     <input type="text" id="r-name" placeholder="例：カレーライス、たまごやき...">
 
-    <label>📅 作った日</label>
+    <label>📅 <ruby>作<rt>つく</rt></ruby>った<ruby>日<rt>ひ</rt></ruby></label>
     <input type="date" id="r-date">
 
     <label>👨‍🍳 ジャンル</label>
@@ -339,13 +471,14 @@
       <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🍰 おかし</button>
       <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🍲 にもの</button>
       <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🍳 いためもの</button>
-      <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🥘 その他</button>
+      <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🍻 おつまみ</button>
+      <button class="tog-btn" onclick="togCat(this,'r-category','sel-green')">🥘 その<ruby>他<rt>た</rt></ruby></button>
     </div>
 
-    <label>🕐 かかる時間</label>
+    <label>🕐 かかる<ruby>時間<rt>じかん</rt></ruby></label>
     <div style="display:flex;gap:8px;align-items:center;">
       <input type="text" id="r-time" placeholder="30" style="max-width:100px;">
-      <span style="font-weight:700;">分</span>
+      <span style="font-weight:700;"><ruby>分<rt>ふん</rt></ruby></span>
     </div>
 
     <label>😤 むずかしさ</label>
@@ -355,7 +488,7 @@
       <button class="tog-btn" onclick="togSingle(this,'r-difficulty','sel-yellow')">⭐⭐⭐ むずかしい</button>
     </div>
 
-    <label>🛒 材料（何人分？<input type="text" id="r-servings" placeholder="2" style="width:50px;display:inline;padding:4px 8px;margin:0 4px;">人分）</label>
+    <label>🛒 <ruby>材料<rt>ざいりょう</rt></ruby>（<ruby>何人分<rt>なんにんぶん</rt></ruby>？<input type="text" id="r-servings" placeholder="2" style="width:50px;display:inline;padding:4px 8px;margin:0 4px;"><ruby>人分<rt>にんぶん</rt></ruby>）</label>
     <div class="ingredients-list" id="ingredients-list">
       <div class="ingredient-row">
         <input type="text" placeholder="材料の名前（例：たまご）">
@@ -363,9 +496,9 @@
         <button class="btn-remove" onclick="removeRow(this,'ingredients-list')">✕</button>
       </div>
     </div>
-    <button class="btn-add" onclick="addIngredient()">＋ 材料をついかする</button>
+    <button class="btn-add" onclick="addIngredient()">＋ <ruby>材料<rt>ざいりょう</rt></ruby>をついかする</button>
 
-    <label>📝 作り方</label>
+    <label>📝 <ruby>作<rt>つく</rt></ruby>り<ruby>方<rt>かた</rt></ruby></label>
     <div class="steps-list" id="steps-list">
       <div class="step-row">
         <div class="step-number">1</div>
@@ -373,12 +506,12 @@
         <button class="btn-remove" onclick="removeStep(this)">✕</button>
       </div>
     </div>
-    <button class="btn-add" onclick="addStep()">＋ 手順をついかする</button>
+    <button class="btn-add" onclick="addStep()">＋ <ruby>手順<rt>てじゅん</rt></ruby>をついかする</button>
 
-    <label>💡 料理のコツ・ポイント</label>
+    <label>💡 <ruby>料理<rt>りょうり</rt></ruby>のコツ・ポイント</label>
     <textarea id="r-tips" placeholder="おいしく作るひみつをかこう！"></textarea>
 
-    <label>💬 感想・気持ち</label>
+    <label>💬 <ruby>感想<rt>かんそう</rt></ruby>・<ruby>気持<rt>きも</rt></ruby>ち</label>
     <textarea id="r-review" placeholder="食べてみてどうだった？だれかに作ってあげた？"></textarea>
 
     <label>⭐ おいしさレベル</label>
@@ -390,71 +523,71 @@
       <button class="star-btn" onclick="setStars('r-stars',5)">⭐</button>
     </div>
 
-    <label>📷 写真</label>
+    <label>📷 <ruby>写真<rt>しゃしん</rt></ruby></label>
     <div class="photo-upload">
       <input type="file" accept="image/*" onchange="previewPhoto(this,'r-preview','r-photo-data','r-hint')">
-      <div id="r-hint"><div style="font-size:48px;">📸</div><div style="font-weight:700;margin-top:8px;">タップして写真をえらぶ</div></div>
+      <div id="r-hint"><div style="font-size:48px;">📸</div><div style="font-weight:700;margin-top:8px;">タップして<ruby>写真<rt>しゃしん</rt></ruby>をえらぶ</div></div>
       <img class="photo-preview" id="r-preview">
     </div>
     <input type="hidden" id="r-photo-data">
 
-    <button class="btn-save recipe" id="r-save-btn" onclick="saveRecipe()">🐰 レシピを保存する！</button>
+    <button class="btn-save recipe" id="r-save-btn" onclick="saveRecipe()">🐰 レシピを<ruby>保存<rt>ほぞん</rt></ruby>する！</button>
   </div>
 </div>
 
 <!-- ② 食べたものを記録ページ -->
 <div class="page" id="page-food">
   <div class="card card-food">
-    <div class="section-title">🍽️ 食べたものを記録しよう！</div>
-    <div class="hint-box">🐰 おうちのごはん、レストラン、旅行で食べたものなんでもOK！</div>
+    <div class="section-title">🍽️ <ruby>食<rt>た</rt></ruby>べたものを<ruby>記録<rt>きろく</rt></ruby>しよう！</div>
+    <div class="hint-box">🐰 おうちのごはん、レストラン、<ruby>旅行<rt>りょこう</rt></ruby>で<ruby>食<rt>た</rt></ruby>べたものなんでもOK！</div>
 
-    <label>🍴 食べた料理の名前 *</label>
+    <label>🍴 <ruby>食<rt>た</rt></ruby>べた<ruby>料理<rt>りょうり</rt></ruby>の<ruby>名前<rt>なまえ</rt></ruby> *</label>
     <input type="text" id="f-name" placeholder="例：おかあさんのから揚げ、ラーメン...">
 
-    <label>📅 食べた日</label>
+    <label>📅 <ruby>食<rt>た</rt></ruby>べた<ruby>日<rt>ひ</rt></ruby></label>
     <input type="date" id="f-date">
 
-    <label>📍 どこで食べた？</label>
+    <label>📍 どこで<ruby>食<rt>た</rt></ruby>べた？</label>
     <div class="toggle-btns" id="f-location-btns">
       <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🏠 おうち</button>
       <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🍽️ レストラン</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🍣 おすし屋さん</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🍣 おすし<ruby>屋<rt>や</rt></ruby>さん</button>
       <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🍔 ファストフード</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🏫 学校</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🚂 旅行</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🏫 <ruby>学校<rt>がっこう</rt></ruby></button>
+      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🚂 <ruby>旅行<rt>りょこう</rt></ruby></button>
       <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🎪 おまつり・イベント</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">✈️ 外国</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">✈️ <ruby>外国<rt>がいこく</rt></ruby></button>
       <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">🥡 テイクアウト</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">💡 その他</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-location-btns','sel-loc')">💡 その<ruby>他<rt>た</rt></ruby></button>
     </div>
 
-    <label>📍 くわしい場所（お店の名前や旅行の場所など）</label>
+    <label>📍 くわしい<ruby>場所<rt>ばしょ</rt></ruby>（お<ruby>店<rt>みせ</rt></ruby>の<ruby>名前<rt>なまえ</rt></ruby>や<ruby>旅行<rt>りょこう</rt></ruby>の<ruby>場所<rt>ばしょ</rt></ruby>など）</label>
     <input type="text" id="f-location-detail" placeholder="例：東京タワーのそば、グランドハイアット東京...">
 
-    <label>👨‍🍳 だれが作った？</label>
+    <label>👨‍🍳 だれが<ruby>作<rt>つく</rt></ruby>った？</label>
     <div class="toggle-btns" id="f-maker">
-      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👨 お父さん</button>
-      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👩 お母さん</button>
+      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👨 お<ruby>父<rt>とう</rt></ruby>さん</button>
+      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👩 お<ruby>母<rt>かあ</rt></ruby>さん</button>
       <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👴 おじいちゃん</button>
       <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👵 おばあちゃん</button>
       <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">👨‍🍳 シェフ・コック</button>
-      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">🏫 給食の人</button>
-      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">😊 自分</button>
+      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">🏫 <ruby>給食<rt>きゅうしょく</rt></ruby>の<ruby>人<rt>ひと</rt></ruby></button>
+      <button class="tog-btn" onclick="togCat(this,'f-maker','sel-green')">😊 <ruby>自分<rt>じぶん</rt></ruby></button>
     </div>
 
-    <label>🍳 料理の種類</label>
+    <label>🍳 <ruby>料理<rt>りょうり</rt></ruby>の<ruby>種類<rt>しゅるい</rt></ruby></label>
     <div class="toggle-btns" id="f-cuisine">
-      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🇯🇵 和食</button>
+      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🇯🇵 <ruby>和食<rt>わしょく</rt></ruby></button>
       <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🍝 イタリアン</button>
-      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🍜 中華</button>
+      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🍜 <ruby>中華<rt>ちゅうか</rt></ruby></button>
       <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🍔 アメリカン</button>
       <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🥘 フレンチ</button>
       <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🌮 メキシカン</button>
       <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🍛 インド・カレー</button>
-      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🌏 その他</button>
+      <button class="tog-btn" onclick="togCat(this,'f-cuisine','sel-green')">🌏 その<ruby>他<rt>た</rt></ruby></button>
     </div>
 
-    <label>💬 感想・気持ち *</label>
+    <label>💬 <ruby>感想<rt>かんそう</rt></ruby>・<ruby>気持<rt>きも</rt></ruby>ち *</label>
     <textarea id="f-review" placeholder="食べてどうだった？どんな味だった？また食べたい？好きなところを教えて！"></textarea>
 
     <label>⭐ おいしさレベル</label>
@@ -466,40 +599,40 @@
       <button class="star-btn" onclick="setStars('f-stars',5)">⭐</button>
     </div>
 
-    <label>🔄 また食べたい？</label>
+    <label>🔄 また<ruby>食<rt>た</rt></ruby>べたい？</label>
     <div class="toggle-btns" id="f-again">
-      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">💖 ぜったいまた食べたい！</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">😊 また食べてもいい</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">💖 ぜったいまた<ruby>食<rt>た</rt></ruby>べたい！</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">😊 また<ruby>食<rt>た</rt></ruby>べてもいい</button>
       <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">😐 ふつう</button>
-      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">😅 もう食べなくていいかな</button>
+      <button class="tog-btn" onclick="togSingle(this,'f-again','sel-orange')">😅 もう<ruby>食<rt>た</rt></ruby>べなくていいかな</button>
     </div>
 
-    <label>📷 写真</label>
+    <label>📷 <ruby>写真<rt>しゃしん</rt></ruby></label>
     <div class="photo-upload">
       <input type="file" accept="image/*" onchange="previewPhoto(this,'f-preview','f-photo-data','f-hint')">
-      <div id="f-hint"><div style="font-size:48px;">📸</div><div style="font-weight:700;margin-top:8px;">タップして写真をえらぶ</div></div>
+      <div id="f-hint"><div style="font-size:48px;">📸</div><div style="font-weight:700;margin-top:8px;">タップして<ruby>写真<rt>しゃしん</rt></ruby>をえらぶ</div></div>
       <img class="photo-preview" id="f-preview">
     </div>
     <input type="hidden" id="f-photo-data">
 
-    <button class="btn-save food" id="f-save-btn" onclick="saveFood()">🐰 記録を保存する！</button>
+    <button class="btn-save food" id="f-save-btn" onclick="saveFood()">🐰 <ruby>記録<rt>きろく</rt></ruby>を<ruby>保存<rt>ほぞん</rt></ruby>する！</button>
   </div>
 </div>
 
 <!-- ③ 見てみようページ -->
 <div class="page" id="page-view">
   <div class="card card-view" style="padding:16px;">
-    <div class="section-title">🔍 記録を見てみよう！</div>
+    <div class="section-title">🔍 <ruby>記録<rt>きろく</rt></ruby>を<ruby>見<rt>み</rt></ruby>てみよう！</div>
     <div class="view-filters">
-      <button class="filter-btn active" onclick="setFilter('all',this)">🐰 全部</button>
+      <button class="filter-btn active" onclick="setFilter('all',this)">🐰 <ruby>全部<rt>ぜんぶ</rt></ruby></button>
       <button class="filter-btn" onclick="setFilter('recipe',this)">📖 レシピ</button>
-      <button class="filter-btn" onclick="setFilter('food',this)">🍽️ 食べたもの</button>
+      <button class="filter-btn" onclick="setFilter('food',this)">🍽️ <ruby>食<rt>た</rt></ruby>べたもの</button>
     </div>
     <div class="search-bar">
       <input type="text" id="search-input" placeholder="🔍 名前でさがす..." oninput="renderRecords()">
     </div>
     <div class="date-filter">
-      <label>📅 期間：</label>
+      <label>📅 <ruby>期間<rt>きかん</rt></ruby>：</label>
       <input type="date" id="date-from" onchange="renderRecords()">
       <span style="font-weight:700;">〜</span>
       <input type="date" id="date-to" onchange="renderRecords()">
@@ -515,12 +648,12 @@
   <div class="card card-quiz">
     <div id="quiz-start-screen" class="quiz-start">
       <div class="quiz-big">🏆</div>
-      <div class="section-title" style="justify-content:center;">料理人クイズ！</div>
-      <p style="font-size:14px;color:#888;margin-bottom:20px;">家庭科の知しきをためしてみよう！</p>
+      <div class="section-title" style="justify-content:center;"><ruby>料理人<rt>りょうりにん</rt></ruby>クイズ！</div>
+      <p style="font-size:14px;color:#888;margin-bottom:20px;"><ruby>家庭科<rt>かていか</rt></ruby>の<ruby>知<rt>ち</rt></ruby>しきをためしてみよう！</p>
       <div class="quiz-level-btns">
-        <button class="quiz-level-btn qlv1" onclick="startQuiz(1)">🌱 かんたん（小学3・4年生レベル）</button>
-        <button class="quiz-level-btn qlv2" onclick="startQuiz(2)">🔥 ふつう（小学5年生レベル）</button>
-        <button class="quiz-level-btn qlv3" onclick="startQuiz(3)">⭐ むずかしい（小学6年生レベル）</button>
+        <button class="quiz-level-btn qlv1" onclick="startQuiz(1)">🌱 かんたん（<ruby>小学<rt>しょうがく</rt></ruby>3・4<ruby>年生<rt>ねんせい</rt></ruby>レベル）</button>
+        <button class="quiz-level-btn qlv2" onclick="startQuiz(2)">🔥 ふつう（<ruby>小学<rt>しょうがく</rt></ruby>5<ruby>年生<rt>ねんせい</rt></ruby>レベル）</button>
+        <button class="quiz-level-btn qlv3" onclick="startQuiz(3)">⭐ むずかしい（<ruby>小学<rt>しょうがく</rt></ruby>6<ruby>年生<rt>ねんせい</rt></ruby>レベル）</button>
       </div>
     </div>
     <div id="quiz-play-screen" style="display:none;">
@@ -534,7 +667,7 @@
       </div>
       <div class="quiz-choices" id="quiz-choices"></div>
       <div class="quiz-explain" id="quiz-explain"></div>
-      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()">次の問題へ →</button>
+      <button class="quiz-next-btn" id="quiz-next-btn" onclick="nextQuestion()"><ruby>次<rt>つぎ</rt></ruby>の<ruby>問題<rt>もんだい</rt></ruby>へ →</button>
     </div>
     <div id="quiz-result-screen" style="display:none;" class="quiz-result">
       <div class="quiz-score-circle">
@@ -569,6 +702,7 @@ function showPage(page) {
   document.getElementById('page-' + page).classList.add('active');
   document.querySelector('.nav-btn.' + page).classList.add('active');
   if (page === 'view') renderRecords();
+  if (typeof cvReact === 'function') cvReact(page === 'quiz' ? 'quiz' : 'page');
 }
 
 function togCat(btn, groupId, cls) { btn.classList.toggle(cls); }
@@ -701,6 +835,7 @@ async function saveRecipe() {
       const banner = document.getElementById('edit-banner');
       if (banner) banner.remove();
       showToast('✏️ レシピを更新したよ！');
+      if (typeof cvReact === 'function') cvReact('save');
       resetRecipeForm();
     } else {
       // 新規保存
@@ -723,6 +858,7 @@ async function saveRecipe() {
         await docRef.update({ photo: photoUrl });
       }
       showToast('🐰 レシピを保存したよ！');
+      if (typeof cvReact === 'function') cvReact('save');
       resetRecipeForm();
     }
   } catch(e) {
@@ -762,6 +898,7 @@ async function saveFood() {
       const banner = document.getElementById('edit-banner');
       if (banner) banner.remove();
       showToast('✏️ 記録を更新したよ！');
+      if (typeof cvReact === 'function') cvReact('save');
       resetFoodForm();
     } else {
       const docRef = await window.dbSave({
@@ -781,6 +918,7 @@ async function saveFood() {
         await docRef.update({ photo: photoUrl });
       }
       showToast('🐰 記録を保存したよ！');
+      if (typeof cvReact === 'function') cvReact('save');
       resetFoodForm();
     }
   } catch(e) {
@@ -1183,6 +1321,140 @@ function showQuizStart() {
   document.getElementById('quiz-result-screen').style.display = 'none';
   document.getElementById('quiz-play-screen').style.display   = 'none';
   document.getElementById('quiz-start-screen').style.display  = 'block';
+}
+
+// ===== 🐰 コンベアベルト =====
+const DEFAULT_FOODS = ['🍣','🍱','🍜','🍛','🍰','🥗','🍳','🍙','🍤','🥘','🍞','🥚','🍲','🍝','🥩','🍦','🍩','🥕','🍎','🧆'];
+const SPEECH_MSGS   = ['おいしそう！','パクっ！','もぐもぐ♪','うまっ！','もっとちょうだい！','むしゃむしゃ！','いただきます！','さいこう！'];
+
+let cvQueue      = [];   // 流すアイテムのキュー
+let cvActive     = [];   // 現在流れているDOM要素
+let cvSpawnTimer = null;
+let cvBunnyTimer = null;
+let cvSpeechTimer= null;
+let cvEating     = false;
+
+function cvInit() {
+  // 記録データをキューに入れる
+  cvRefreshQueue();
+  cvStartSpawn();
+}
+
+function cvRefreshQueue() {
+  const records = (window._records || []);
+  const named   = records.map(r => ({ emoji: cvEmojiForRecord(r), label: r.name }));
+  const defaults= DEFAULT_FOODS.map(e => ({ emoji: e, label: null }));
+  // 記録があれば mix、なければ default のみ
+  const pool = named.length > 0
+    ? [...named, ...named, ...defaults].sort(() => Math.random() - .5)
+    : defaults.slice().sort(() => Math.random() - .5);
+  cvQueue = [...pool, ...pool]; // 十分な量
+}
+
+function cvEmojiForRecord(r) {
+  const map = { 'ごはん':'🍚','めん':'🍜','パン':'🍞','サラダ':'🥗','おかし':'🍰','にもの':'🍲','いためもの':'🍳','おつまみ':'🍻' };
+  if (r.type === 'recipe' && r.category) {
+    for (const [k,v] of Object.entries(map)) { if (r.category.includes(k)) return v; }
+    return '📖';
+  }
+  return '🍽️';
+}
+
+function cvStartSpawn() {
+  if (cvSpawnTimer) clearInterval(cvSpawnTimer);
+  cvSpawnSpeedMs = 2200;
+  cvSpawnTimer = setInterval(() => cvSpawnItem(), cvSpawnSpeedMs);
+  cvSpawnItem(); // 即座に1個
+}
+
+let cvSpawnSpeedMs = 2200;
+
+function cvSpawnItem(force) {
+  const wrap = document.getElementById('conveyor-wrap');
+  if (!wrap) return;
+  if (cvQueue.length === 0) cvRefreshQueue();
+  const item = cvQueue.shift();
+
+  const el = document.createElement('div');
+  el.className = 'cv-item';
+  const duration = 5 + Math.random() * 3; // 5〜8秒
+  el.style.cssText = `right:-80px; animation-duration:${duration}s;`;
+  el.innerHTML = `
+    <div class="cv-food">${item.emoji}</div>
+    <div class="cv-plate"></div>
+    ${item.label ? `<div class="cv-label">${escHtml(item.label.slice(0,8))}</div>` : ''}
+  `;
+  wrap.appendChild(el);
+  cvActive.push({ el, startTime: Date.now(), duration: duration * 1000 });
+
+  el.addEventListener('animationend', () => {
+    el.remove();
+    cvActive = cvActive.filter(a => a.el !== el);
+  });
+
+  // うさぎの食べる判定（左端 90px 以内に来たとき）
+  setTimeout(() => cvCheckEat(el, item), (duration - 1.1) * 1000);
+}
+
+function cvCheckEat(el, item) {
+  if (!document.contains(el)) return;
+  cvDoEat(item);
+}
+
+function cvDoEat(item) {
+  if (cvEating) return;
+  cvEating = true;
+  const bunny = document.getElementById('cv-bunny');
+  const speech = document.getElementById('cv-speech');
+  if (!bunny) return;
+
+  // nom アニメ
+  bunny.classList.remove('nom','happy','bounce-in');
+  void bunny.offsetWidth;
+  bunny.classList.add('nom');
+
+  // セリフ
+  const msg = item.label
+    ? `${item.label.slice(0,6)}、うまっ！`
+    : SPEECH_MSGS[Math.floor(Math.random() * SPEECH_MSGS.length)];
+  speech.textContent = msg;
+  speech.classList.add('show');
+
+  if (cvSpeechTimer) clearTimeout(cvSpeechTimer);
+  cvSpeechTimer = setTimeout(() => {
+    speech.classList.remove('show');
+    cvEating = false;
+  }, 1400);
+}
+
+// アクションリアクション
+function cvReact(type) {
+  const bunny  = document.getElementById('cv-bunny');
+  const speech = document.getElementById('cv-speech');
+  if (!bunny) return;
+  bunny.classList.remove('nom','happy','bounce-in');
+  void bunny.offsetWidth;
+  const msgs = {
+    save:   ['ほぞんしたよ！','やったね！','もっとかいて！'],
+    page:   ['どこいくの？','あそぼ！','みてるよ！'],
+    input:  ['がんばって！','おいしそう！','なんのりょうり？'],
+    quiz:   ['クイズ！？','むずかしいな〜','せいかい！？'],
+  };
+  const pool = msgs[type] || msgs.page;
+  speech.textContent = pool[Math.floor(Math.random() * pool.length)];
+  speech.classList.add('show');
+  bunny.classList.add(type === 'save' ? 'happy' : 'bounce-in');
+  if (cvSpeechTimer) clearTimeout(cvSpeechTimer);
+  cvSpeechTimer = setTimeout(() => { speech.classList.remove('show'); cvEating = false; }, 1600);
+}
+
+// 記録が更新されたらキューを更新
+document.getElementById('r-name').addEventListener('input', () => { if(typeof cvReact==='function') cvReact('input'); });
+document.getElementById('f-name').addEventListener('input', () => { if(typeof cvReact==='function') cvReact('input'); });
+
+// すぐに開始（DOMContentLoadedが済んでいる場合）
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+  setTimeout(cvInit, 600);
 }
 
 document.getElementById('r-date').value = today();
