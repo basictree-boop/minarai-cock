@@ -295,9 +295,9 @@
     background: linear-gradient(180deg, #fff8f0 0%, #ffe8d0 100%);
     border-bottom: 3px solid #ffcba0;
     position: relative;
-    height: 120px;
+    height: 130px;
     user-select: none;
-    overflow: visible; /* セリフが上にはみ出せるように */
+    overflow: visible;
   }
   .conveyor-clip {
     position: absolute;
@@ -347,18 +347,21 @@
     filter: drop-shadow(0 2px 2px rgba(0,0,0,.2));
   }
   .cv-label {
-    font-size: 9px;
+    font-size: 10px;
     font-weight: 900;
-    color: #8a5a2a;
-    background: rgba(255,255,240,.9);
-    border-radius: 6px;
-    padding: 1px 4px;
-    max-width: 70px;
+    color: #5a3010;
+    background: rgba(255,245,200,.95);
+    border: 1.5px solid #e8c860;
+    border-radius: 8px;
+    padding: 2px 6px;
+    max-width: 72px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    margin-top: 2px;
+    margin-bottom: 2px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
   }
+  .cv-label-empty { height: 20px; }
 
   /* うさぎ */
   .cv-bunny-wrap {
@@ -1337,11 +1340,9 @@ let cvLastTime   = null;
 
 function cvInit() {
   cvRefreshQueue();
-  // rAFループ開始
   cvRafId = requestAnimationFrame(cvLoop);
-  // 定期スポーン
   cvSpawnItem();
-  cvSpawnTimer = setInterval(cvSpawnItem, 2400);
+  cvSpawnTimer = setInterval(cvSpawnItem, 4500); // 間隔を広げる
 }
 
 function cvLoop(ts) {
@@ -1374,9 +1375,21 @@ function cvRefreshQueue() {
   const records = (window._records || []);
   const named   = records.map(r => ({ emoji: cvEmojiForRecord(r), label: r.name }));
   const defaults= DEFAULT_FOODS.map(e => ({ emoji: e, label: null }));
-  const pool = named.length > 0
-    ? [...named, ...named, ...defaults].sort(() => Math.random() - .5)
-    : defaults.slice().sort(() => Math.random() - .5);
+  // 記録があれば1個おきにmix、なければdefaultのみ
+  let pool = [];
+  if (named.length > 0) {
+    const shuffledNamed = [...named].sort(() => Math.random() - .5);
+    const shuffledDef   = [...defaults].sort(() => Math.random() - .5);
+    // 記録1つ → デフォルト1〜2つ の比率で混ぜる
+    shuffledNamed.forEach((n, i) => {
+      pool.push(n);
+      pool.push(shuffledDef[i % shuffledDef.length]);
+    });
+    // デフォルトも少し足す
+    pool = [...pool, ...shuffledDef.slice(0, 5)].sort(() => Math.random() - .5);
+  } else {
+    pool = [...defaults].sort(() => Math.random() - .5);
+  }
   cvQueue = [...pool, ...pool];
 }
 
@@ -1400,10 +1413,14 @@ function cvSpawnItem() {
   const W = clip.offsetWidth || window.innerWidth;
   const startX = W + 10;
   el.style.left = startX + 'px';
-  el.innerHTML = `<div class="cv-food">${data.emoji}</div><div class="cv-plate"></div>${data.label ? `<div class="cv-label">${escHtml(data.label.slice(0,8))}</div>` : ''}`;
+  el.innerHTML = `
+    ${data.label ? `<div class="cv-label">${escHtml(data.label.slice(0,8))}</div>` : '<div class="cv-label-empty"></div>'}
+    <div class="cv-food">${data.emoji}</div>
+    <div class="cv-plate"></div>
+  `;
   clip.appendChild(el);
 
-  const speed = 70 + Math.random() * 40; // 70〜110 px/sec
+  const speed = 70 + Math.random() * 40;
   cvItems.push({ el, x: startX, speed, data, eaten: false });
 }
 
